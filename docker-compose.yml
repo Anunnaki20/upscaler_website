@@ -1,0 +1,11 @@
+version: "3"
+
+services:     
+  dj:
+    container_name: django_upscaler
+    build: .
+    command: python manage.py runserver 0.0.0.0:8080
+    volumes:
+      - .:/upscaler_website
+    ports:
+      - "8080:8080"
