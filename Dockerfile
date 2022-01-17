@@ -4,16 +4,16 @@ FROM python:3
 ENV PYTHONUNBUFFERED 1
 
 # Set work directory.
-RUN mkdir /upscaler_website
+RUN mkdir /development
 
-WORKDIR /upscaler_website
+WORKDIR /development
 
-COPY requirements.txt /upscaler_website/
+COPY requirements.txt /development/
 
 # Install dependencies.
 RUN pip install -r requirements.txt
 
 # Copy project website.
-COPY . /upscaler_website/
+COPY . /development/
 
 EXPOSE 8080
