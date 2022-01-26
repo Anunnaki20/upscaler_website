@@ -1,0 +1,36 @@
+html, body{
+    background-image: url("/static/images/home_background.jpg");
+    background-size: cover;
+    height: 100%;
+}
+
+.login_signup_bg{
+    margin: auto;
+    margin-top: 10%;
+    width: 70%;
+    height: 60%;
+    background-color: white;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    align-content: space-between;
+    flex-wrap: nowrap;
+}
+
+.login_signup{
+    padding: 0 5rem;
+}
+
+.info_bg{
+    margin: auto 0;
+    border-radius: 0 1rem 1rem 0;
+    background-image: url("/static/images/Moon.svg");
+    background-size: cover;
+    width: 50%;
+    height: 100%;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    
+}

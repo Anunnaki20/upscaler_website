@@ -5,5 +5,6 @@ from . import views
 
 
 urlpatterns = [
-    path('test/', views.test_connection, name='test'),
+    path('', views.loginPage, name='login'),        # Login is the default page
+     path('signup/', views.signupPage, name='signup'),
 ]
