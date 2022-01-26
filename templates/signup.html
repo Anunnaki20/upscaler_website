@@ -2,18 +2,30 @@
 
 {% block content %}
 
-    
-        <p>Please sign up</p>
+        <h2>Please sign up</h2>
         <form method="POST" action="">
             {% csrf_token %}
-            {{ form.as_p }}
+            {% for field in form %}
+            <p>
+                {{ field.label_tag }}<br>
+                {{ field }}
+
+                {% if field.help_text %}
+                    <small style="color:grey">{{ field.help_text }}</small>
+                {% endif %}
+
+                {% for error in field.errors %}
+                    <p style="color:red">{{ error }}</p>
+                {% endfor %}
+            </p>
+            {% endfor %}
             <!-- <label>Username:</label>
             <input type="text" value="username" placeholder="Enter Username"/>
             <label>Email Address:</label>
             <input type="text" value="email" placeholder="Enter Email Address"/>
             <label>Password:</label>
             <input type="text" value="password" placeholder="Enter Password"/> -->
-            <button class="btn btn-primary" type="submit">Register</button>
+            <button type="submit">Sign up</button>
         </form>
 
 {% endblock %}

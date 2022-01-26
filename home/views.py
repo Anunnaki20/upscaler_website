@@ -20,11 +20,8 @@ def homepage(request):
 
 # Signing up page
 def signupPage(request):        
-    # If the form inputs are valid save the user and login them in and send them to the homepage
-    # Else display an error
-    form = CustomerRegisterForm()
-    context = {'form' : form}
 
+    form = CustomerRegisterForm()
     if request.method == 'POST':
         # Send POST data to the UserCreationForm
         form = CustomerRegisterForm(request.POST)
@@ -32,15 +29,16 @@ def signupPage(request):
         # If the form inputs are valid save the user and login them in and send them to the homepage
         # Else display an error
         if form.is_valid():
-            user = form.save(commit=False)
-            user.save()
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
             login(request, user)
             return redirect('homepage')
         else:
-            messages.error(request, 'Password does not match')
+           form = CustomerRegisterForm()
 
-
-    return render(request, 'signup.html', context)
+    return render(request, 'signup.html', {'form':form})
     
 # ---------------------------Login Stuff Below-------------------------------------
 
