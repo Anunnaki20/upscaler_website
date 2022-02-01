@@ -8,3 +8,8 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.username + ", " + self.email
+
+
+class Images(models.Model):
+#    file = models.FileField(upload_to='documents/', None=True)
+   image = models.ImageField(upload_to='images/') #, None=True

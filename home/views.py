@@ -7,9 +7,14 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout 
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage #for uploading images
 # from home.models import customer_report as report
 from home.forms import CustomerRegisterForm
+
+import requests
+import base64
 # Create your views here.
+
 
 # import requests
 def homepage(request):
@@ -79,3 +84,23 @@ def loginPage(request):
 def logoutCustomer(request):
     logout(request)
     return redirect('login')
+
+# Sending image to the SISR website
+def sendImage(request):
+    req = requests.post('http://host.docker.internal:5000/', json={"data": "Hello"})
+    return HttpResponse(req.text)
+
+# Upload image to the website
+def upload(request):
+    if request.method == 'POST' and request.FILES['upload']:
+        upload = request.FILES['upload']
+        fss = FileSystemStorage()
+        file = fss.save(upload.name, upload)
+        file_url = fss.url(file)
+        return render(request, 'upload.html', {'file_url': file_url})
+    return render(request, 'upload.html')
+
+def test_connection(request):
+    # return HttpResponse("TESTING")
+    req = requests.post('http://host.docker.internal:5000/', json={"data": "Hello"})
+    return HttpResponse(req.text)

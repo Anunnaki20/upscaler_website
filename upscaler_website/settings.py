@@ -71,6 +71,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'upscaler_website.wsgi.application'
 
+MEDIA_URL = '/images/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'images')
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases

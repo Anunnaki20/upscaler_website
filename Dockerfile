@@ -12,6 +12,7 @@ COPY requirements.txt /development/
 
 # Install dependencies.
 RUN pip install -r requirements.txt
+RUN pip install Pillow
 
 # Copy project website.
 COPY . /development/
