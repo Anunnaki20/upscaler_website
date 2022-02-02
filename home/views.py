@@ -13,6 +13,8 @@ from home.forms import CustomerRegisterForm
 
 import requests
 import base64
+from PIL import Image
+import numpy
 # Create your views here.
 
 
@@ -94,13 +96,28 @@ def sendImage(request):
 def upload(request):
     if request.method == 'POST' and request.FILES['upload']:
         upload = request.FILES['upload']
-        fss = FileSystemStorage()
-        file = fss.save(upload.name, upload)
-        file_url = fss.url(file)
-        return render(request, 'upload.html', {'file_url': file_url})
+        if check_image_size(request, upload):
+            fss = FileSystemStorage()
+            file = fss.save(upload.name, upload)
+            file_url = fss.url(file)
+            return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
 def test_connection(request):
     # return HttpResponse("TESTING")
     req = requests.post('http://host.docker.internal:5000/', json={"data": "Hello"})
     return HttpResponse(req.text)
+
+def check_image_size(request, image):
+    img= Image.open(image)
+    np_img = numpy.array(img)
+    height, width, size = np_img.shape
+    
+    if height < 128 or width < 128:
+        messages.error(request, 'Image size is too small to upscale.')
+        return False
+    if height > 1080 or width > 1080:
+        messages.error(request, 'Image size is too large to upscale.')
+        return False
+    
+    return True

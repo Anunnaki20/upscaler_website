@@ -12,7 +12,7 @@ COPY requirements.txt /development/
 
 # Install dependencies.
 RUN pip install -r requirements.txt
-RUN pip install Pillow
+RUN pip install Pillow numpy
 
 # Copy project website.
 COPY . /development/
