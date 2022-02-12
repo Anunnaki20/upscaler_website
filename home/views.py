@@ -15,6 +15,7 @@ import requests
 import base64
 from PIL import Image
 import numpy
+import cv2
 # Create your views here.
 
 
@@ -88,18 +89,38 @@ def logoutCustomer(request):
     return redirect('login')
 
 # Sending image to the SISR website
-def sendImage(request):
-    req = requests.post('http://host.docker.internal:5000/', json={"data": "Hello"})
+def sendImage(request, image):
+    #### Get the extension of the file ####
+    extension = image[1:len(image)].split(".", 1)[1]
+    # print(extension)
+    content_type = 'image/' + extension
+    headers = {'content-type': content_type}
+
+    img = cv2.imread(image)
+    # encode image as png
+    _, img_encoded = cv2.imencode('.png', img)
+    # send http request with image and receive response
+    req = requests.post('http://host.docker.internal:5000/', data=img_encoded.tostring(), headers=headers)
+
+
+    # files = {'media': open(image, 'rb')}
+    # req = requests.post('http://host.docker.internal:5000/', files=files)
     return HttpResponse(req.text)
 
 # Upload image to the website
 def upload(request):
     if request.method == 'POST' and request.FILES['upload']:
         upload = request.FILES['upload']
+        # Check if the uploaded image is valid size/resolution
         if check_image_size(request, upload):
             fss = FileSystemStorage()
+            # Save the image to the images folder
             file = fss.save(upload.name, upload)
-            file_url = fss.url(file)
+            file_url = fss.url(file) # Get the location of the file with just uploaded and saved
+            # print(file_url)
+
+            ##### Send the image to the backend server #####
+            sendImage(request, "."+file_url) #"./images/"+upload.name
             return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
@@ -109,14 +130,17 @@ def test_connection(request):
     return HttpResponse(req.text)
 
 def check_image_size(request, image):
-    img= Image.open(image)
-    np_img = numpy.array(img)
+    img= Image.open(image) # open the saved image that the user uploaded
+    np_img = numpy.array(img) #convert to a numpy array
     height, width, size = np_img.shape
     
+    # Check the resolution of the image and make sure it is within the requirements of 128-1080 pixels by 128-1080 pixels
     if height < 128 or width < 128:
+        print('Image size is too small to upscale.')
         messages.error(request, 'Image size is too small to upscale.')
         return False
     if height > 1080 or width > 1080:
+        print('Image size is too large to upscale.')
         messages.error(request, 'Image size is too large to upscale.')
         return False
     
