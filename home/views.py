@@ -10,12 +10,16 @@ from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage #for uploading images
 # from home.models import customer_report as report
 from home.forms import CustomerRegisterForm
+from home.forms import UpscaleInformation
 
 import requests
 import base64
 from PIL import Image
 import numpy
 import cv2
+import numpy as np
+import base64
+import json
 # Create your views here.
 
 
@@ -89,7 +93,7 @@ def logoutCustomer(request):
     return redirect('login')
 
 # Sending image to the SISR website
-def sendImage(request, image):
+def sendImage(request, image, scaleAmount, modelName):
     #### Get the extension of the file ####
     extension = image[1:len(image)].split(".", 1)[1]
     # print(extension)
@@ -100,17 +104,59 @@ def sendImage(request, image):
     # encode image as png
     _, img_encoded = cv2.imencode('.png', img)
     # send http request with image and receive response
-    req = requests.post('http://host.docker.internal:5000/', data=img_encoded.tostring(), headers=headers)
+    # nparr = np.frombuffer(img_encoded.tostring(), np.uint8)
+    # print(nparr)
+    # arr = nparr.tolist()
+
+    # imagearr = img_encoded.decode('UTF-8')
+    imagearr = ""
+    #base64.b64encode(img)
+    # data = {"image": img_encoded.tostring(),"model": "model.h5", "scaleAmount": 2} #"image": img_encoded.tostring(), 
+    # data = str(data)
+    # print("shalom")
+    # # data = json.dumps(data) #.encode('utf-8')
+    # print("hello")
+    # data = JSON.stringify(data)
+    req = requests.post('http://host.docker.internal:5000/', json={'image': imagearr,'model': modelName, 'scaleAmount': scaleAmount})
+    # req = requests.post('http://host.docker.internal:5000/', data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#, headers=headers) #data=data # json={"model": "model.h5", "scaleAmount": 2}
 
 
     # files = {'media': open(image, 'rb')}
     # req = requests.post('http://host.docker.internal:5000/', files=files)
     return HttpResponse(req.text)
 
+# # Get the information to upscale the image
+# def info(request):
+#     if request.method == 'POST':
+#         # Send POST data to the UpscaleInformation
+#         form = UpscaleInformation(request.POST)
+
+#         # If the form inputs are valid save the user and login them in and send them to the homepage
+#         # Else display an error
+#         if form.is_valid():
+#             print(request.POST.get('scaleAmount'))
+#             print(request.POST.get('model'))
+#             return render(request, 'info.html')
+
+#     else:
+#         return render(request, 'info.html') #, {'form':form}
+
 # Upload image to the website
 def upload(request):
     if request.method == 'POST' and request.FILES['upload']:
         upload = request.FILES['upload']
+
+        # Send POST data to the UpscaleInformation
+        form = UpscaleInformation(request.POST)
+
+        # If the form inputs are valid save the user and login them in and send them to the homepage
+        # Else display an error
+        if form.is_valid():
+            scaleAmount = request.POST.get('scaleAmount')
+            modelName = request.POST.get('model')
+            print("Scale:", scaleAmount, ", Model:", modelName)
+            # return render(request, 'info.html')
+
         # Check if the uploaded image is valid size/resolution
         if check_image_size(request, upload):
             fss = FileSystemStorage()
@@ -120,7 +166,7 @@ def upload(request):
             # print(file_url)
 
             ##### Send the image to the backend server #####
-            sendImage(request, "."+file_url) #"./images/"+upload.name
+            sendImage(request, "."+file_url, scaleAmount, modelName) #"./images/"+upload.name
             return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
@@ -132,7 +178,7 @@ def test_connection(request):
 def check_image_size(request, image):
     img= Image.open(image) # open the saved image that the user uploaded
     np_img = numpy.array(img) #convert to a numpy array
-    height, width, size = np_img.shape
+    height, width = np_img.shape
     
     # Check the resolution of the image and make sure it is within the requirements of 128-1080 pixels by 128-1080 pixels
     if height < 128 or width < 128:

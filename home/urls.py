@@ -8,7 +8,7 @@ from . import views
 urlpatterns = [
     path('', views.loginPage, name='login'),        # Login is the default page
      path('signup/', views.signupPage, name='signup'),
-     path('sending/', views.sendImage, name='sendimage'),
+    #  path('info/', views.info, name='info'),
      path("upload/", views.upload, name="upload"),
      path("test/", views.test_connection),
     #  path("download/", views.download, name="download"),

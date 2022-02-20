@@ -1,19 +1,124 @@
 {% extends 'index.html' %}
 
 {% block content %}  
-   
-<div class="container">
+<!-- 
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* Create two equal columns that floats next to each other */
+  .column {
+    float: left;
+    width: 50%;
+    /* Should be removed. Only for demonstration */
+  }
 
-    <!--Simple Form-->
+  /* Clear floats after the columns */
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  </style>
+  </head> -->
+   
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+  <form method="POST" action="{% url 'upload' %}" enctype="multipart/form-data">
+    {%  csrf_token %}
+
+    <!-- <div class="row">
+      <div class="column"> -->
+        <!-- <div style="width:300px;float:left"> -->
+      
+
+    <!--Upload Image-->
+    <h2 class="my-4">Upload an image to upscale.</h2>
+      <input type="file" name="upload" accept=".jpeg, .png, .tiff, .bmp, .zip" required> <!-- accept="image/*"-->
+      <br>
+      <p>Accepted file types: [.jpeg, .png, .tiff, .bmp, .zip]</p>
+
+    <br>
+
+    <!--Scale Selection Form-->
+    <p>Select Upscaling Factor:</p>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="scaleAmount" id="double" value="2" checked="checked"> <!-- inlineRadioOptions -->
+        <label class="form-check-label" for="double">x2</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="scaleAmount" id="quad" value="4"> <!-- inlineRadioOptions -->
+        <label class="form-check-label" for="quad">x4</label>
+    </div>
+
+    <br>
+
+    <p>Select Model:</p>
+    <!-- <div class="form-row align-items-center"> -->
+    <div class="col-auto my-1">
+        <label class="mr-sm-2 sr-only" for="model">Model</label> <!-- inlineFormCustomSelect -->
+        <select class="custom-select mr-sm-2" name="model" id="model"> <!-- inlineFormCustomSelect -->
+        <option value="Model.h5" selected>Model.h5 (default)</option>
+        <option value="Model_4_t1024.h5">Model_4_t1024.h5</option>
+        <option value="Model_4_t1024_e1000.h5">Model_4_t1024_e1000.h5</option>
+        <option value="Model_2_t1024.h5">Model_2_t1024.h5</option>
+        </select>
+    </div>
+
+    <br>
+
+    <div class="col-auto my-1">
+        <button type="submit" class="btn btn-dark my-4">Submit</button>
+    </div>
+  </form>
+  </div>
+<!-- </form> -->
+        <!-- </div> -->
+    <!-- <br>
+    <br> -->
+
+    <!-- <div class="column"> -->
+
+
+      <!-- <div style="width:1000px;float:right;text-align:left"> -->
+        <div class="col">
+    <!--See Image Uploaded-->
+    <h2 class="my-4">Uploaded Image</h2>
+    <!-- <div class="row"> -->
+      {% if file_url %}
+      <!-- <div class="col-6 pb-4"> -->
+        <img src="{{ file_url }}" align="right" class="img-fluid">
+        <br>
+        <a class="btn btn-dark my-4" href="/">Return to Homepage</a>
+      {% else %}
+      <p>No Image Uploaded Yet.</p>
+      {% endif %}
+    </div>
+  </div>
+  </div>
+
+
+
+
+
+
+
+    <!-- Upload Image
     <h2 class="my-4">Upload an image to upscale.</h2>
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-          <input type="file" name="upload" accept=".jpeg, .png, .tiff, .bmp"> <!-- accept="image/*"-->
+          <input type="file" name="upload" accept=".jpeg, .png, .tiff, .bmp, .zip" required> <!-- accept="image/*"
           <br>
+          <p>Accepted file types: [.jpeg, .png, .tiff, .bmp, .zip]</p>
           <button class="btn btn-dark my-4" type="submit">Submit</button>
     </form>
 
-    <!--See Image Uploaded-->
+    <!--See Image Uploaded
     <h2 class="my-4">Uploaded Image</h2>
     <div class="row">
       {% if file_url %}
@@ -22,11 +127,11 @@
         <br>
         <a class="btn btn-dark my-4" href="/">Return to Homepage</a>
       {% else %}
-      <p>No movies posters added.</p>
+      <p>No Image Uploaded Yet.</p>
       {% endif %}
     </div>
 
-  </div>
+  </div> -->
     
 
 {% endblock %}
