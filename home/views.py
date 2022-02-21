@@ -8,21 +8,22 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout 
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage #for uploading images
+from django.urls import reverse
 # from home.models import customer_report as report
 from home.forms import CustomerRegisterForm
 from home.forms import UpscaleInformation
 
 import requests
-import base64
 from PIL import Image
 import numpy
 import cv2
 import numpy as np
 import base64
 import json
-import zipfile
-import os
-import shutil
+import zipfile # used for zipping
+import os # used for get the files and checking what type
+import shutil # used for zipping
+import mimetypes # used for downloading link
 # Create your views here.
 
 
@@ -98,38 +99,20 @@ def logoutCustomer(request):
 # Sending image to the SISR website
 def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
-    extension = image[1:len(image)].split(".", 1)[1]
+    # extension = image[1:len(image)].split(".", 1)[1]
     # print(extension)
-    content_type = 'image/' + extension
-    headers = {'content-type': content_type}
+    # content_type = 'image/' + extension
+    # headers = {'content-type': content_type}
 
     img = cv2.imread(image)
     # encode image as png
     _, img_encoded = cv2.imencode('.png', img)
     # send http request with image and receive response
-    # nparr = np.frombuffer(img_encoded.tostring(), np.uint8)
-    # print(nparr)
-    # arr = nparr.tolist()
-
-    # imagearr = img_encoded.decode('UTF-8')
-    # imagebin = open(image, 'rb')
-    # imagebin_read = imagebin.read()
-    # image_64_encode = base64.b64encode(imagebin_read)
-
     imagearr = img_encoded.tostring()
-    #base64.b64encode(img)
-    # data = {"image": img_encoded.tostring(),"model": "model.h5", "scaleAmount": 2} #"image": img_encoded.tostring(), 
-    # data = str(data)
-    # print("shalom")
-    # # data = json.dumps(data) #.encode('utf-8')
-    # print("hello")
-    # data = JSON.stringify(data)
-    req = requests.post('http://host.docker.internal:5000/', data=imagearr, json={'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure})#json={'image': imagearr,'model': modelName, 'scaleAmount': scaleAmount})
-    # req = requests.post('http://host.docker.internal:5000/', data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#, headers=headers) #data=data # json={"model": "model.h5", "scaleAmount": 2}
 
+    payload = {'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
+    req = requests.post('http://host.docker.internal:5000/', data=imagearr, params=payload)
 
-    # files = {'media': open(image, 'rb')}
-    # req = requests.post('http://host.docker.internal:5000/', files=files)
     return HttpResponse(req.text)
 
 
@@ -138,35 +121,11 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     content_type = 'application/zip'
     headers = {'content-type': content_type}
 
-    # img = cv2.imread(image)
-    # encode image as png
-    # _, img_encoded = cv2.imencode('.png', img)
-    # send http request with image and receive response
-    # nparr = np.frombuffer(img_encoded.tostring(), np.uint8)
-    # print(nparr)
-    # arr = nparr.tolist()
-
-    # imagearr = img_encoded.decode('UTF-8')
-    # imagebin = open(image, 'rb')
-    # imagebin_read = imagebin.read()
-    # image_64_encode = base64.b64encode(imagebin_read)
-
     fsock = open(zipfile, 'rb')
 
-    # imagearr = img_encoded.tostring()
-    #base64.b64encode(img)
-    # data = {"image": img_encoded.tostring(),"model": "model.h5", "scaleAmount": 2} #"image": img_encoded.tostring(), 
-    # data = str(data)
-    # print("shalom")
-    # # data = json.dumps(data) #.encode('utf-8')
-    # print("hello")
-    # data = JSON.stringify(data)
-    req = requests.post('http://host.docker.internal:5000/', data=fsock, json={'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure})
-    # req = requests.post('http://host.docker.internal:5000/', data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#, headers=headers) #data=data # json={"model": "model.h5", "scaleAmount": 2}
+    payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
+    req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
-
-    # files = {'media': open(image, 'rb')}
-    # req = requests.post('http://host.docker.internal:5000/', files=files)
     return HttpResponse(req.text)
 
 
@@ -293,6 +252,32 @@ def cleanDirectories(request):
                 print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
     
     return render(request, 'clean.html')
+
+# Downloadable link
+def download_file(request): #, filename=''
+    # if filename != '':
+    # Define file name
+    # filename = '56364398.png'
+    filename = 'validZip.zip'
+    # filename = 'upscaled.zip'
+    # Define the full file path
+    # filepath = "./images/upscaledImages/upscaled.zip"
+    # filepath = "./images/upscaledImages/56364398.png"
+    filepath = "./images/validZip.zip"
+    # Open the file for reading content
+    path = open(filepath, 'rb')
+    # Set the mime type
+    mime_type, _ = mimetypes.guess_type(filepath)
+    # Set the return value of the HttpResponse
+    response = HttpResponse(path, content_type=mime_type)
+    # Set the HTTP header for sending to browser
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    # Return the response value
+    return response
+    # else:
+    #     # return redirect('download_file', filename = './images/upscaledImages/56364398.png')
+    #     # return redirect(reverse('download_file', kwargs={'filename': './images/upscaledImages/56364398.png'}))
+    #     return render(request, 'download.html')
 
 
 def test_connection(request):
