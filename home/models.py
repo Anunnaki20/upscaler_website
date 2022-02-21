@@ -15,6 +15,7 @@ class Info(models.Model):
     image = models.ImageField(upload_to='images/') #, None=True
     scaleAmount = models.IntegerField()
     model = models.CharField(max_length=255, null=False)
+    qualityMeasure = models.IntegerField()
 
     def __str__(self):
-        return self.scaleAmount + ", " + self.model
+        return self.scaleAmount + ", " + self.model + ", " + self.qualityMeasure

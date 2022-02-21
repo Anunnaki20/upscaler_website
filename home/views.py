@@ -96,7 +96,7 @@ def logoutCustomer(request):
     return redirect('login')
 
 # Sending image to the SISR website
-def sendImage(request, image, scaleAmount, modelName):
+def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
     extension = image[1:len(image)].split(".", 1)[1]
     # print(extension)
@@ -124,7 +124,7 @@ def sendImage(request, image, scaleAmount, modelName):
     # # data = json.dumps(data) #.encode('utf-8')
     # print("hello")
     # data = JSON.stringify(data)
-    req = requests.post('http://host.docker.internal:5000/', data=imagearr, json={'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount})#json={'image': imagearr,'model': modelName, 'scaleAmount': scaleAmount})
+    req = requests.post('http://host.docker.internal:5000/', data=imagearr, json={'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure})#json={'image': imagearr,'model': modelName, 'scaleAmount': scaleAmount})
     # req = requests.post('http://host.docker.internal:5000/', data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#, headers=headers) #data=data # json={"model": "model.h5", "scaleAmount": 2}
 
 
@@ -134,7 +134,7 @@ def sendImage(request, image, scaleAmount, modelName):
 
 
 # Sending zip file to the SISR website
-def sendZip(request, zipfile, scaleAmount, modelName):
+def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     content_type = 'application/zip'
     headers = {'content-type': content_type}
 
@@ -161,7 +161,7 @@ def sendZip(request, zipfile, scaleAmount, modelName):
     # # data = json.dumps(data) #.encode('utf-8')
     # print("hello")
     # data = JSON.stringify(data)
-    req = requests.post('http://host.docker.internal:5000/', data=fsock, json={'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount})
+    req = requests.post('http://host.docker.internal:5000/', data=fsock, json={'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure})
     # req = requests.post('http://host.docker.internal:5000/', data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#data=img_encoded.tostring(), json={'model': 'model.h5', 'scaleAmount': 2})#, headers=headers) #data=data # json={"model": "model.h5", "scaleAmount": 2}
 
 
@@ -183,7 +183,8 @@ def upload(request):
         if form.is_valid():
             scaleAmount = request.POST.get('scaleAmount')
             modelName = request.POST.get('model')
-            print("Scale:", scaleAmount, ", Model:", modelName)
+            qualityMeasure = request.POST.get('quality')
+            print("Scale:", scaleAmount, ", Model:", modelName, ", Quality Measure?:", qualityMeasure)
             # return render(request, 'info.html')
 
         # If it is then we will want to run a different function to handle the zip
@@ -244,7 +245,7 @@ def upload(request):
             # Send the zip file to the backend server #
             ######################################################
             ##### Send the zip file to the backend server #####
-            sendZip(request, "."+file_url, scaleAmount, modelName) #"./images/"+upload.name
+            sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
             return render(request, 'upload.html')
 
         else: # the uploaded file was a single image
@@ -257,7 +258,7 @@ def upload(request):
                 # print(file_url)
 
                 ##### Send the image to the backend server #####
-                sendImage(request, "."+file_url, scaleAmount, modelName) #"./images/"+upload.name
+                sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
@@ -291,7 +292,7 @@ def cleanDirectories(request):
             except OSError as e:
                 print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
     
-    return render(request, 'upload.html')
+    return render(request, 'clean.html')
 
 
 def test_connection(request):

@@ -6,8 +6,9 @@
 
     <form method="POST" action="{% url 'info' %}">
         {%  csrf_token %}
+
         <!--Scale Selection Form-->
-        <p>Select Upscaling Factor:</p>
+        <p>Select Scaling Factor:</p>
         <div class="form-check form-check-inline">
             <input class="form-check-input" type="radio" name="scaleAmount" id="double" value="2" checked="checked"> <!-- inlineRadioOptions -->
             <label class="form-check-label" for="double">x2</label>
@@ -29,6 +30,18 @@
             <option value="Model_4_t1024_e1000.h5">Model_4_t1024_e1000.h5</option>
             <option value="Model_2_t1024.h5">Model_2_t1024.h5</option>
             </select>
+        </div>
+
+        <br>
+
+        <p>Quality Measure Check:</p>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="quality" id="no" value="no" checked="checked"> <!-- inlineRadioOptions -->
+            <label class="form-check-label" for="double">No</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="quality" id="yes" value="yes"> <!-- inlineRadioOptions -->
+            <label class="form-check-label" for="quad">Yes</label>
         </div>
 
         <br>

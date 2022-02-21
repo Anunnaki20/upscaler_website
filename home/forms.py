@@ -34,4 +34,4 @@ class UpscaleInformation(forms.Form):
 
     class Meta:
         model = Info
-        fields = ['image', 'scaleAmount', 'model']
+        fields = ['image', 'scaleAmount', 'model', 'qualityMeasure']
