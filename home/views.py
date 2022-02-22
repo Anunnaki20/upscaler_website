@@ -212,7 +212,6 @@ def upload(request):
             ######################################################
             # Send the zip file to the backend server #
             ######################################################
-            ##### Send the zip file to the backend server #####
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
             cleanDirectories()
             return render(request, 'upload.html')
