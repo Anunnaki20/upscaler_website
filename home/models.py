@@ -10,6 +10,12 @@ class Customer(models.Model):
         return self.username + ", " + self.email
 
 
-class Images(models.Model):
+class Info(models.Model):
 #    file = models.FileField(upload_to='documents/', None=True)
-   image = models.ImageField(upload_to='images/') #, None=True
+    image = models.ImageField(upload_to='images/') #, None=True
+    scaleAmount = models.IntegerField()
+    model = models.CharField(max_length=255, null=False)
+    qualityMeasure = models.IntegerField()
+
+    def __str__(self):
+        return self.scaleAmount + ", " + self.model + ", " + self.qualityMeasure

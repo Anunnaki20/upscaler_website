@@ -1,0 +1,19 @@
+{% extends 'index.html' %}
+
+{% block content %}  
+
+<html>
+    <p><font size="18">Uploaded images have been upscaled.</font></p>
+    <br>
+    <p><font size="12">Click link to download.</font></p>
+    <br>
+    <br>
+    
+    <a href="{% url 'download_file' filename='56364398.png' %}">Download File</a> <!--='./images/upscaledImages/56364398.png'-->
+
+    <br>
+    <br>
+    <a class="btn btn-dark my-4" href="/upload">Return to Uploading Images</a>
+</html>
+
+{% endblock %}
