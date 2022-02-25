@@ -24,6 +24,7 @@ import zipfile # used for zipping
 import os # used for get the files and checking what type
 import shutil # used for zipping
 import mimetypes # used for downloading link
+from pathlib import Path # Finds name of an image file
 # Create your views here.
 
 
@@ -99,19 +100,25 @@ def logoutCustomer(request):
 # Sending image to the SISR website
 def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
-    # extension = image[1:len(image)].split(".", 1)[1]
-    # print(extension)
-    # content_type = 'image/' + extension
-    # headers = {'content-type': content_type}
+    extension = image[1:len(image)].split(".", 1)[1]
+    print(extension)
+    content_type = 'image/' + extension
+    headers = {'content-type': content_type}
 
-    img = cv2.imread(image)
-    # encode image as png
-    _, img_encoded = cv2.imencode('.png', img)
+    # img = cv2.imread(image)       # MATTHEW
+    # # encode image as png
+    # _, img_encoded = cv2.imencode('.png', img)
     # send http request with image and receive response
-    imagearr = img_encoded.tostring()
+    # imagearr = img_encoded.tostring()
 
-    payload = {'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
-    req = requests.post('http://host.docker.internal:5000/', data=imagearr, params=payload)
+    with open(image,'rb') as binary_file:
+        binary_data = binary_file.read()
+        base64_encoded_data = base64.b64encode(binary_data)
+        image_message = base64_encoded_data.decode('utf-8')
+
+    baseName = Path(image).stem
+    payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
+    req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload)
 
     return HttpResponse(req.text)
 
@@ -126,6 +133,8 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
+    #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+    #return render(request, 'upload.html')
     return HttpResponse(req.text)
 
 
@@ -133,7 +142,6 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
 def upload(request):
     if request.method == 'POST' and request.FILES['upload']:
         upload = request.FILES['upload']
-
         # Send POST data to the UpscaleInformation
         form = UpscaleInformation(request.POST)
 
@@ -148,6 +156,7 @@ def upload(request):
 
         # If it is then we will want to run a different function to handle the zip
         #### Get the extension of the file ####
+        
         extension = upload.name[1:len(upload.name)].split(".", 1)[1]
         print(extension)
 
@@ -203,8 +212,8 @@ def upload(request):
             ######################################################
             # Send the zip file to the backend server #
             ######################################################
-            ##### Send the zip file to the backend server #####
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+            cleanDirectories()
             return render(request, 'upload.html')
 
         else: # the uploaded file was a single image
@@ -218,11 +227,12 @@ def upload(request):
 
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+                cleanDirectories()
                 return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
 # Remove/delete the files in the images and extractedImages folders
-def cleanDirectories(request):
+def cleanDirectories():
     ####################################
     # Delete the items in subdirectory #
     ####################################
@@ -230,7 +240,6 @@ def cleanDirectories(request):
         if os.path.isdir("./images/extractedImages/"+file_in_sub):
             try:
                 shutil.rmtree("./images/extractedImages/"+file_in_sub)
-                # os.rmdir("./images/extractedImages/"+file_in_sub)
             except OSError as e:
                 print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
         else:
@@ -251,7 +260,7 @@ def cleanDirectories(request):
             except OSError as e:
                 print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
     
-    return render(request, 'clean.html')
+    #return render(request, 'clean.html')
 
 # Downloadable link
 def download_file(request): #, filename=''
@@ -286,7 +295,7 @@ def test_connection(request):
     return HttpResponse(req.text)
 
 def check_image_size(request, image):
-    img= Image.open(image) # open the saved image that the user uploaded
+    img= Image.open(image).convert('L') # open the saved image that the user uploaded and convert it to 2D from 3D
     np_img = numpy.array(img) #convert to a numpy array
     height, width = np_img.shape
     
