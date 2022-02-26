@@ -138,7 +138,6 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
     #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-    print(type(req))
     return render(request, 'upload.html')
     #return redirect('downloadZip')
 
@@ -182,12 +181,14 @@ def downloadZip(request):
     # print(cgi.parse_header(response.headers['Content-Disposition'])[-1]['filename'])
     return render(request,'download.html')
 
+# Send back the upscaled zip folder to user
 def sendBackZip(request):
     file_server = pathlib.Path('./upscaledZip.zip')
     if not file_server.exists():
         messages.error(request, 'file not found.')
     else:
         file_to_download = open(str(file_server), 'rb')
+        os.remove("./upscaledZip.zip")
         response = FileResponse(file_to_download, content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
         return response
@@ -267,8 +268,9 @@ def upload(request):
             # Send the zip file to the backend server #
             ######################################################
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-            cleanDirectories()
-            return render(request, 'upload.html')
+            cleanDirectories(request)
+            return redirect('downloadZip')
+            #return render(request, 'download.html')
 
         else: # the uploaded file was a single image
             # Check if the uploaded image is valid size/resolution
@@ -281,12 +283,12 @@ def upload(request):
 
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-                #cleanDirectories()
+                cleanDirectories(request)
                 return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
 # Remove/delete the files in the images and extractedImages folders
-def cleanDirectories():
+def cleanDirectories(request):
     ####################################
     # Delete the items in subdirectory #
     ####################################
