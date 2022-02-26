@@ -18,8 +18,6 @@ from PIL import Image
 import numpy
 import cv2
 import numpy as np
-import base64
-import json
 import zipfile # used for zipping
 import os # used for get the files and checking what type
 import shutil # used for zipping
@@ -253,17 +251,66 @@ def cleanDirectories(request):
     
     return render(request, 'clean.html')
 
+# Get the zip file from the backend
+def getUpscaled(request):
+    # handle the POST request
+    if request.method == 'POST':
+
+        # r = request
+        file_content = requests.get('http://host.docker.internal:5000/')
+        # parameters = r.params
+        # print(r.args)
+        # Assign the parameters to their own variables
+        # singleImage = parameters['single'] # if False then not single image, if True then only one image in zip
+        # filetype = parameters['type']
+        # scale = parameters['scaleAmount']
+        # model = parameters['model']
+        # qualityMeasure = parameters['qualityMeasure']
+        # print("File Type:", filetype, ", Scale:", scale, ", Model:", model, ", Quality Measure?:", qualityMeasure)
+        # print("Single Image?:", singleImage)
+
+        # if filetype == "zip":
+        zip_result = open('./images/upscaledImages/results.zip', 'wb')
+        zip_result.write(file_content.content)
+        # zip_result.write(request.data)
+
+        #########################################
+        # unzip the file if single image in zip #
+        #########################################
+        # if singleImage:
+        file_url = "/images/upscaledImages/results.zip"
+        # extract the image from the zip to display
+        with zipfile.ZipFile("."+file_url, 'r') as zip_ref:
+            zip_ref.extractall("./upscaledImages/")
+
+        file_url = "/upscaledImages/test.png"
+        
+        return HttpResponse(file_content.text)
+        # return render(request, 'testing.html', {'file_url': file_url})
+        # return
+
+
+# Render the download website
+def download(request):
+    return render(request, 'download.html')
+
 # Downloadable link
 def download_file(request): #, filename=''
+    ######################################################################################################
+    # Current code doesn't allow you to click a link, instead it just automatically asks to save or open #
+    ######################################################################################################
+
     # if filename != '':
     # Define file name
-    # filename = '56364398.png'
-    filename = 'validZip.zip'
+    filename = '56364398.png'
+    # filename = "results.zip"
+    # filename = 'validZip.zip'
     # filename = 'upscaled.zip'
     # Define the full file path
     # filepath = "./images/upscaledImages/upscaled.zip"
-    # filepath = "./images/upscaledImages/56364398.png"
-    filepath = "./images/validZip.zip"
+    # filepath = "./images/upscaledImages/results.zip"
+    filepath = "./images/upscaledImages/56364398.png"
+    # filepath = "./images/validZip.zip"
     # Open the file for reading content
     path = open(filepath, 'rb')
     # Set the mime type
@@ -274,10 +321,7 @@ def download_file(request): #, filename=''
     response['Content-Disposition'] = "attachment; filename=%s" % filename
     # Return the response value
     return response
-    # else:
-    #     # return redirect('download_file', filename = './images/upscaledImages/56364398.png')
-    #     # return redirect(reverse('download_file', kwargs={'filename': './images/upscaledImages/56364398.png'}))
-    #     return render(request, 'download.html')
+
 
 
 def test_connection(request):
