@@ -10,8 +10,10 @@ urlpatterns = [
      path('signup/', views.signupPage, name='signup'),
      path('clean/', views.cleanDirectories, name='cleanDirectories'),
      path("upload/", views.upload, name="upload"),
-     path("download/", views.download_file, name="download_file"),
-     path("download//", views.download_file, name="download_file"),
+     #path("download/", views.download_file, name="download_file"),
+     path("downloadZip/", views.downloadZip, name="downloadZip"),
+     path("sendBackZip/", views.sendBackZip, name="sendBackZip"),
+     #path("download//", views.download_file, name="download_file"),
      path("test/", views.test_connection),
     #  path("download/", views.download, name="download"),
 ]

@@ -1,5 +1,9 @@
+import cgi
+import io
+import pathlib
+import time
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse,  FileResponse
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
@@ -134,9 +138,59 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
     #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-    #return render(request, 'upload.html')
-    return HttpResponse(req.text)
+    print(type(req))
+    return render(request, 'upload.html')
+    #return redirect('downloadZip')
 
+# Download zipped file received from the SISR website
+def downloadZip(request):
+    """Download file from url to directory
+
+    URL is expected to have a Content-Disposition header telling us what
+    filename to use.
+
+    Returns filename of downloaded file.
+
+    """
+    
+    # CSIDL_PERSONAL = 5       # My Documents
+    # SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+
+    # buf= create_unicode_buffer(wintypes.MAX_PATH)
+    # windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+
+    # print(buf.value)
+    #directory = os.path.expanduser("~")+"/Downloads/"
+
+    directory = "./"
+    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    # if response.status != 200:
+    #      raise ValueError('Failed to download')
+    
+    params = cgi.parse_header(
+    response.headers.get('Content-Disposition', ''))[-1]
+    if 'filename' not in params:
+        raise ValueError('Could not find a filename')
+
+    filename = os.path.basename(params['filename'])
+    abs_path = os.path.join(directory, filename)
+    with open(abs_path, 'wb') as target:
+        response.raw.decode_content = True
+        shutil.copyfileobj(response.raw, target)
+
+    # return response
+    # print(cgi.parse_header(response.headers['Content-Disposition'])[-1]['filename'])
+    return render(request,'download.html')
+
+def sendBackZip(request):
+    file_server = pathlib.Path('./upscaledZip.zip')
+    if not file_server.exists():
+        messages.error(request, 'file not found.')
+    else:
+        file_to_download = open(str(file_server), 'rb')
+        response = FileResponse(file_to_download, content_type='application/force-download')
+        response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
+        return response
 
 # Upload image to the website
 def upload(request):
@@ -227,7 +281,7 @@ def upload(request):
 
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-                cleanDirectories()
+                #cleanDirectories()
                 return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
@@ -262,27 +316,28 @@ def cleanDirectories():
     
     #return render(request, 'clean.html')
 
+
 # Downloadable link
-def download_file(request): #, filename=''
+#def download_file(request): #, filename=''
     # if filename != '':
     # Define file name
     # filename = '56364398.png'
-    filename = 'validZip.zip'
+    # filename = 'validZip.zip'
     # filename = 'upscaled.zip'
     # Define the full file path
     # filepath = "./images/upscaledImages/upscaled.zip"
     # filepath = "./images/upscaledImages/56364398.png"
-    filepath = "./images/validZip.zip"
+    # filepath = "./images/validZip.zip"
     # Open the file for reading content
-    path = open(filepath, 'rb')
+    # path = open(filepath, 'rb')
     # Set the mime type
-    mime_type, _ = mimetypes.guess_type(filepath)
+    # mime_type, _ = mimetypes.guess_type(filepath)
     # Set the return value of the HttpResponse
-    response = HttpResponse(path, content_type=mime_type)
+    # response = HttpResponse(path, content_type=mime_type)
     # Set the HTTP header for sending to browser
-    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    # response['Content-Disposition'] = "attachment; filename=%s" % filename
     # Return the response value
-    return response
+   # return request
     # else:
     #     # return redirect('download_file', filename = './images/upscaledImages/56364398.png')
     #     # return redirect(reverse('download_file', kwargs={'filename': './images/upscaledImages/56364398.png'}))
