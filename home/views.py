@@ -1,5 +1,9 @@
+import cgi
+import io
+import pathlib
+import time
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse,  FileResponse
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
@@ -99,36 +103,30 @@ def logoutCustomer(request):
 # Sending image to the SISR website
 def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
-    # extension = image[1:len(image)].split(".", 1)[1]
-    # print(extension)
-    # content_type = 'image/' + extension
-    # headers = {'content-type': content_type}
+    extension = image[1:len(image)].split(".", 1)[1]
+    print(extension)
+    content_type = 'image/' + extension
+    headers = {'content-type': content_type}
 
-    # Mine
-    # img = cv2.imread(image)
+    # img = cv2.imread(image)       # MATTHEW
     # # encode image as png
     # _, img_encoded = cv2.imencode('.png', img)
-    # # send http request with image and receive response
+    # send http request with image and receive response
     # imagearr = img_encoded.tostring()
 
-    # Yafi's
     with open(image,'rb') as binary_file:
         binary_data = binary_file.read()
         base64_encoded_data = base64.b64encode(binary_data)
         image_message = base64_encoded_data.decode('utf-8')
 
     baseName = Path(image).stem
-
-    # payload = {'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
-    # req = requests.post('http://host.docker.internal:5000/', data=imagearr, params=payload)
-    payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure} # Yafi's
-    req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload) # Yafi's
-
+    payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
+    req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload)
 
     return HttpResponse(req.text)
 
 
-# Sending zip file to the SISR website
+# Initially sending the received zip folder to the SISR website
 def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     content_type = 'application/zip'
     headers = {'content-type': content_type}
@@ -138,14 +136,64 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
-    return HttpResponse(req.text)
+    #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+    return render(request, 'upload.html')
+    #return redirect('downloadZip')
 
+# Download upscaled zipped file received from the SISR website
+def downloadZip(request):
+    """Download file from url to directory
+
+    URL is expected to have a Content-Disposition header telling us what
+    filename to use.
+
+    Returns filename of downloaded file.
+
+    """
+    
+    # CSIDL_PERSONAL = 5       # My Documents
+    # SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+
+    # buf= create_unicode_buffer(wintypes.MAX_PATH)
+    # windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+
+    # print(buf.value)
+    #directory = os.path.expanduser("~")+"/Downloads/"
+
+    directory = "./"
+    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    # if response.status != 200:
+    #      raise ValueError('Failed to download')
+    
+    params = cgi.parse_header(
+    response.headers.get('Content-Disposition', ''))[-1]
+    if 'filename' not in params:
+        raise ValueError('Could not find a filename')
+
+    filename = os.path.basename(params['filename'])
+    abs_path = os.path.join(directory, filename)
+    with open(abs_path, 'wb') as target:
+        response.raw.decode_content = True
+        shutil.copyfileobj(response.raw, target)
+
+    return render(request,'download.html')
+
+# Send back the upscaled zip folder to user
+def sendBackZip(request):
+    file_server = pathlib.Path('./upscaledZip.zip')
+    if not file_server.exists():
+        messages.error(request, 'file not found.')
+    else:
+        file_to_download = open(str(file_server), 'rb')
+        os.remove("./upscaledZip.zip")
+        response = FileResponse(file_to_download, content_type='application/force-download')
+        response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
+        return response
 
 # Upload image to the website
 def upload(request):
     if request.method == 'POST' and request.FILES['upload']:
         upload = request.FILES['upload']
-
         # Send POST data to the UpscaleInformation
         form = UpscaleInformation(request.POST)
 
@@ -160,6 +208,7 @@ def upload(request):
 
         # If it is then we will want to run a different function to handle the zip
         #### Get the extension of the file ####
+        
         extension = upload.name[1:len(upload.name)].split(".", 1)[1]
         print(extension)
 
@@ -194,7 +243,14 @@ def upload(request):
                     extension = filename[1:len(filename)].split(".", 1)[1]
                     accepted_types = ["jpeg", "png", "tiff", "bmp"]
                     if extension in accepted_types:
-                        print(filename)
+                        if check_image_size(request,f):
+                            print(filename)
+                        else:
+                            # delete that file so that we can zip the valid files
+                            try:
+                                os.remove("./images/extractedImages/"+filename)
+                            except OSError as e:
+                                print("Error: %s : %s" % ("./images/extractedImages/"+filename, e.strerror))
                     else:
                         print("Error (file not correct type):", filename, "does not meet the requirements to upscale and therefore will not be processed.")
                         # delete that file so that we can zip the valid files
@@ -215,9 +271,10 @@ def upload(request):
             ######################################################
             # Send the zip file to the backend server #
             ######################################################
-            ##### Send the zip file to the backend server #####
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-            return render(request, 'upload.html')
+            cleanDirectories(request)
+            return redirect('downloadZip')
+            #return render(request, 'download.html')
 
         else: # the uploaded file was a single image
             # Check if the uploaded image is valid size/resolution
@@ -230,6 +287,7 @@ def upload(request):
 
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+                cleanDirectories(request)
                 return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
@@ -242,7 +300,6 @@ def cleanDirectories(request):
         if os.path.isdir("./images/extractedImages/"+file_in_sub):
             try:
                 shutil.rmtree("./images/extractedImages/"+file_in_sub)
-                # os.rmdir("./images/extractedImages/"+file_in_sub)
             except OSError as e:
                 print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
         else:
@@ -263,7 +320,8 @@ def cleanDirectories(request):
             except OSError as e:
                 print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
     
-    return render(request, 'clean.html')
+    #return render(request, 'clean.html')
+
 
 # Get the zip file from the backend
 def getUpscaled(request):
@@ -309,33 +367,30 @@ def download(request):
     return render(request, 'download.html')
 
 # Downloadable link
-def download_file(request): #, filename=''
-    ######################################################################################################
-    # Current code doesn't allow you to click a link, instead it just automatically asks to save or open #
-    ######################################################################################################
-
+#def download_file(request): #, filename=''
     # if filename != '':
     # Define file name
-    filename = '56364398.png'
-    # filename = "results.zip"
+    # filename = '56364398.png'
     # filename = 'validZip.zip'
     # filename = 'upscaled.zip'
     # Define the full file path
     # filepath = "./images/upscaledImages/upscaled.zip"
-    # filepath = "./images/upscaledImages/results.zip"
-    filepath = "./images/upscaledImages/56364398.png"
+    # filepath = "./images/upscaledImages/56364398.png"
     # filepath = "./images/validZip.zip"
     # Open the file for reading content
-    path = open(filepath, 'rb')
+    # path = open(filepath, 'rb')
     # Set the mime type
-    mime_type, _ = mimetypes.guess_type(filepath)
+    # mime_type, _ = mimetypes.guess_type(filepath)
     # Set the return value of the HttpResponse
-    response = HttpResponse(path, content_type=mime_type)
+    # response = HttpResponse(path, content_type=mime_type)
     # Set the HTTP header for sending to browser
-    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    # response['Content-Disposition'] = "attachment; filename=%s" % filename
     # Return the response value
-    return response
-
+   # return request
+    # else:
+    #     # return redirect('download_file', filename = './images/upscaledImages/56364398.png')
+    #     # return redirect(reverse('download_file', kwargs={'filename': './images/upscaledImages/56364398.png'}))
+    #     return render(request, 'download.html')
 
 
 def test_connection(request):
@@ -344,7 +399,7 @@ def test_connection(request):
     return HttpResponse(req.text)
 
 def check_image_size(request, image):
-    img= Image.open(image) # open the saved image that the user uploaded
+    img= Image.open(image).convert('L') # open the saved image that the user uploaded and convert it to 2D from 3D
     np_img = numpy.array(img) #convert to a numpy array
     height, width = np_img.shape
     
