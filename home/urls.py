@@ -6,7 +6,7 @@ from . import views
 
 
 urlpatterns = [
-    path('', views.loginPage, name='login'),        # Login is the default page
+    path('login/', views.loginPage, name='login'),        # Login is the default page
      path('signup/', views.signupPage, name='signup'),
      path('clean/', views.cleanDirectories, name='cleanDirectories'),
      path("upload/", views.upload, name="upload"),
@@ -15,6 +15,7 @@ urlpatterns = [
      path("sendBackZip/", views.sendBackZip, name="sendBackZip"),
      #path("download//", views.download_file, name="download_file"),
      path("test/", views.test_connection),
+     path("get/", views.getUpscaled, name="getUpscaled"),
     #  path("download/", views.download, name="download"),
 ]
 

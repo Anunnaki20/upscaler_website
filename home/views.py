@@ -18,12 +18,11 @@ from home.forms import CustomerRegisterForm
 from home.forms import UpscaleInformation
 
 import requests
+import base64
 from PIL import Image
 import numpy
 import cv2
 import numpy as np
-import base64
-import json
 import zipfile # used for zipping
 import os # used for get the files and checking what type
 import shutil # used for zipping
