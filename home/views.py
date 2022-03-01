@@ -127,7 +127,7 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     return HttpResponse(req.text)
 
 
-# Sending zip file to the SISR website
+# Initially sending the received zip folder to the SISR website
 def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     content_type = 'application/zip'
     headers = {'content-type': content_type}
@@ -141,7 +141,7 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     return render(request, 'upload.html')
     #return redirect('downloadZip')
 
-# Download zipped file received from the SISR website
+# Download upscaled zipped file received from the SISR website
 def downloadZip(request):
     """Download file from url to directory
 
@@ -177,8 +177,6 @@ def downloadZip(request):
         response.raw.decode_content = True
         shutil.copyfileobj(response.raw, target)
 
-    # return response
-    # print(cgi.parse_header(response.headers['Content-Disposition'])[-1]['filename'])
     return render(request,'download.html')
 
 # Send back the upscaled zip folder to user
@@ -246,7 +244,14 @@ def upload(request):
                     extension = filename[1:len(filename)].split(".", 1)[1]
                     accepted_types = ["jpeg", "png", "tiff", "bmp"]
                     if extension in accepted_types:
-                        print(filename)
+                        if check_image_size(request,f):
+                            print(filename)
+                        else:
+                            # delete that file so that we can zip the valid files
+                            try:
+                                os.remove("./images/extractedImages/"+filename)
+                            except OSError as e:
+                                print("Error: %s : %s" % ("./images/extractedImages/"+filename, e.strerror))
                     else:
                         print("Error (file not correct type):", filename, "does not meet the requirements to upscale and therefore will not be processed.")
                         # delete that file so that we can zip the valid files
