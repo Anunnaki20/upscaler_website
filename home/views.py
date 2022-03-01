@@ -14,6 +14,7 @@ from home.forms import CustomerRegisterForm
 from home.forms import UpscaleInformation
 
 import requests
+import base64
 from PIL import Image
 import numpy
 import cv2
@@ -22,6 +23,7 @@ import zipfile # used for zipping
 import os # used for get the files and checking what type
 import shutil # used for zipping
 import mimetypes # used for downloading link
+from pathlib import Path # Finds name of an image file
 # Create your views here.
 
 
@@ -102,14 +104,26 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     # content_type = 'image/' + extension
     # headers = {'content-type': content_type}
 
-    img = cv2.imread(image)
-    # encode image as png
-    _, img_encoded = cv2.imencode('.png', img)
-    # send http request with image and receive response
-    imagearr = img_encoded.tostring()
+    # Mine
+    # img = cv2.imread(image)
+    # # encode image as png
+    # _, img_encoded = cv2.imencode('.png', img)
+    # # send http request with image and receive response
+    # imagearr = img_encoded.tostring()
 
-    payload = {'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
-    req = requests.post('http://host.docker.internal:5000/', data=imagearr, params=payload)
+    # Yafi's
+    with open(image,'rb') as binary_file:
+        binary_data = binary_file.read()
+        base64_encoded_data = base64.b64encode(binary_data)
+        image_message = base64_encoded_data.decode('utf-8')
+
+    baseName = Path(image).stem
+
+    # payload = {'type': 'singleImage', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
+    # req = requests.post('http://host.docker.internal:5000/', data=imagearr, params=payload)
+    payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure} # Yafi's
+    req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload) # Yafi's
+
 
     return HttpResponse(req.text)
 
