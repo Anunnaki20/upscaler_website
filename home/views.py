@@ -1,5 +1,9 @@
+import cgi
+import io
+import pathlib
+import time
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse,  FileResponse
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
@@ -123,7 +127,7 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     return HttpResponse(req.text)
 
 
-# Sending zip file to the SISR website
+# Initially sending the received zip folder to the SISR website
 def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     content_type = 'application/zip'
     headers = {'content-type': content_type}
@@ -134,9 +138,58 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
     #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-    #return render(request, 'upload.html')
-    return HttpResponse(req.text)
+    return render(request, 'upload.html')
+    #return redirect('downloadZip')
 
+# Download upscaled zipped file received from the SISR website
+def downloadZip(request):
+    """Download file from url to directory
+
+    URL is expected to have a Content-Disposition header telling us what
+    filename to use.
+
+    Returns filename of downloaded file.
+
+    """
+    
+    # CSIDL_PERSONAL = 5       # My Documents
+    # SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+
+    # buf= create_unicode_buffer(wintypes.MAX_PATH)
+    # windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+
+    # print(buf.value)
+    #directory = os.path.expanduser("~")+"/Downloads/"
+
+    directory = "./"
+    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    # if response.status != 200:
+    #      raise ValueError('Failed to download')
+    
+    params = cgi.parse_header(
+    response.headers.get('Content-Disposition', ''))[-1]
+    if 'filename' not in params:
+        raise ValueError('Could not find a filename')
+
+    filename = os.path.basename(params['filename'])
+    abs_path = os.path.join(directory, filename)
+    with open(abs_path, 'wb') as target:
+        response.raw.decode_content = True
+        shutil.copyfileobj(response.raw, target)
+
+    return render(request,'download.html')
+
+# Send back the upscaled zip folder to user
+def sendBackZip(request):
+    file_server = pathlib.Path('./upscaledZip.zip')
+    if not file_server.exists():
+        messages.error(request, 'file not found.')
+    else:
+        file_to_download = open(str(file_server), 'rb')
+        os.remove("./upscaledZip.zip")
+        response = FileResponse(file_to_download, content_type='application/force-download')
+        response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
+        return response
 
 # Upload image to the website
 def upload(request):
@@ -191,7 +244,14 @@ def upload(request):
                     extension = filename[1:len(filename)].split(".", 1)[1]
                     accepted_types = ["jpeg", "png", "tiff", "bmp"]
                     if extension in accepted_types:
-                        print(filename)
+                        if check_image_size(request,f):
+                            print(filename)
+                        else:
+                            # delete that file so that we can zip the valid files
+                            try:
+                                os.remove("./images/extractedImages/"+filename)
+                            except OSError as e:
+                                print("Error: %s : %s" % ("./images/extractedImages/"+filename, e.strerror))
                     else:
                         print("Error (file not correct type):", filename, "does not meet the requirements to upscale and therefore will not be processed.")
                         # delete that file so that we can zip the valid files
@@ -213,8 +273,9 @@ def upload(request):
             # Send the zip file to the backend server #
             ######################################################
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-            cleanDirectories()
-            return render(request, 'upload.html')
+            cleanDirectories(request)
+            return redirect('downloadZip')
+            #return render(request, 'download.html')
 
         else: # the uploaded file was a single image
             # Check if the uploaded image is valid size/resolution
@@ -227,12 +288,12 @@ def upload(request):
 
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-                cleanDirectories()
+                cleanDirectories(request)
                 return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
 # Remove/delete the files in the images and extractedImages folders
-def cleanDirectories():
+def cleanDirectories(request):
     ####################################
     # Delete the items in subdirectory #
     ####################################
@@ -262,27 +323,28 @@ def cleanDirectories():
     
     #return render(request, 'clean.html')
 
+
 # Downloadable link
-def download_file(request): #, filename=''
+#def download_file(request): #, filename=''
     # if filename != '':
     # Define file name
     # filename = '56364398.png'
-    filename = 'validZip.zip'
+    # filename = 'validZip.zip'
     # filename = 'upscaled.zip'
     # Define the full file path
     # filepath = "./images/upscaledImages/upscaled.zip"
     # filepath = "./images/upscaledImages/56364398.png"
-    filepath = "./images/validZip.zip"
+    # filepath = "./images/validZip.zip"
     # Open the file for reading content
-    path = open(filepath, 'rb')
+    # path = open(filepath, 'rb')
     # Set the mime type
-    mime_type, _ = mimetypes.guess_type(filepath)
+    # mime_type, _ = mimetypes.guess_type(filepath)
     # Set the return value of the HttpResponse
-    response = HttpResponse(path, content_type=mime_type)
+    # response = HttpResponse(path, content_type=mime_type)
     # Set the HTTP header for sending to browser
-    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    # response['Content-Disposition'] = "attachment; filename=%s" % filename
     # Return the response value
-    return response
+   # return request
     # else:
     #     # return redirect('download_file', filename = './images/upscaledImages/56364398.png')
     #     # return redirect(reverse('download_file', kwargs={'filename': './images/upscaledImages/56364398.png'}))
