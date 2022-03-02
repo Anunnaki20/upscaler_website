@@ -137,9 +137,7 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
-    #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
     return render(request, 'upload.html')
-    #return redirect('downloadZip')
 
 # Download upscaled zipped file received from the SISR website
 def downloadZip(request):
@@ -221,7 +219,7 @@ def upload(request):
             file_url = fss.url(file) # Get the location of the file with just uploaded and saved
 
             ######################################################
-            # unzip the file and check image size for each image #
+            # unzip the file and check image size and type for each image #
             ######################################################
             # extract the images from the zip
             with zipfile.ZipFile("."+file_url, 'r') as zip_ref:
@@ -264,7 +262,7 @@ def upload(request):
                     continue # do not do anything with it
 
             ######################################################
-            # Zip all the images that meet the size requirement #
+            # Zip all the images that meet the size and type requirement #
             ######################################################
             shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
             file_url = "/images/validZip.zip"
@@ -282,14 +280,15 @@ def upload(request):
             if check_image_size(request, upload):
                 fss = FileSystemStorage()
                 # Save the image to the images folder
-                file = fss.save(upload.name, upload)
+                file = fss.save("./extractedImages/" + upload.name, upload)
                 file_url = fss.url(file) # Get the location of the file with just uploaded and saved
-                # print(file_url)
-
+                shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
+                file_url = "/images/validZip.zip"
                 ##### Send the image to the backend server #####
-                sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+                sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 cleanDirectories(request)
-                return render(request, 'upload.html', {'file_url': file_url})
+                return redirect('downloadZip')
+                #return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
 
 # Remove/delete the files in the images and extractedImages folders
@@ -321,6 +320,11 @@ def cleanDirectories(request):
             except OSError as e:
                 print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
     
+    # try:
+    #     os.remove("./upscaledZip.zip")
+    # except OSError as e:
+    #     print("Error: %s : %s" % ("./upScaledZip.zip", e.strerror))
+    # return request
     #return render(request, 'clean.html')
 
 
