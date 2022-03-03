@@ -31,10 +31,6 @@ from pathlib import Path # Finds name of an image file
 # Create your views here.
 
 
-def homepage(request):
-    return render(request, 'homepage.html')
-
-
 # ---------------------------Login Stuff Below-------------------------------------
 # Signing up page
 def signupPage(request):        
@@ -59,7 +55,6 @@ def signupPage(request):
     return render(request, 'signup.html', {'form':form})
     
 
-# @login_required(login_url="")
 def loginPage(request):
 
     # If the user is already logged in and they try to go back to login page, send them to homepage
@@ -90,9 +85,10 @@ def loginPage(request):
 
 
 # Logout the Customer
-def logoutCustomer(request):
+@login_required(login_url="login")
+def logoutUser(request):
     logout(request)
-    return redirect('login')
+    return redirect('upload')
 
 # -------------------------------------------------------------------------------
 

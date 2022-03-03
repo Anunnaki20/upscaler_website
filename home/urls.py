@@ -7,10 +7,11 @@ from . import views
 
 urlpatterns = [
     path('login/', views.loginPage, name='login'),        
-     path('signup/', views.signupPage, name='signup'),
-     path('', views.upload, name="upload"), # Upload is the default page
-     path('downloadZip/', views.downloadZip, name="downloadZip"),
-     path('sendBackZip/', views.sendBackZip, name="sendBackZip"),
+    path('signup/', views.signupPage, name='signup'),
+    path('logout/', views.logoutUser, name='logout'),
+    path('', views.upload, name="upload"), # Upload is the default page
+    path('downloadZip/', views.downloadZip, name="downloadZip"),
+    path('sendBackZip/', views.sendBackZip, name="sendBackZip"),
 ]
 
 if settings.DEBUG: # new
