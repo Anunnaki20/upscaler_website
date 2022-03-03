@@ -175,6 +175,14 @@ def downloadZip(request):
         response.raw.decode_content = True
         shutil.copyfileobj(response.raw, target)
 
+    zipPath = "./"+filename
+    
+    # extract the images from the zip
+    with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+        zippedFiles = zip_ref.namelist()
+        if len(zippedFiles)==1:
+            zip_ref.extractall("./images/upscaledImages")
+            
     return render(request,'download.html')
 
 # Send back the upscaled zip folder to user
@@ -287,7 +295,7 @@ def upload(request):
                 ##### Send the image to the backend server #####
                 #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure)
-                cleanDirectories(request)
+                #cleanDirectories(request)
                 return redirect('downloadZip')
                 #return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
