@@ -31,13 +31,11 @@ from pathlib import Path # Finds name of an image file
 # Create your views here.
 
 
-# import requests
 def homepage(request):
-    # return HttpResponse("TESTING")
-    # req = requests.post('http://host.docker.internal:5000/', json={"data": "Hello"})
     return render(request, 'homepage.html')
 
 
+# ---------------------------Login Stuff Below-------------------------------------
 # Signing up page
 def signupPage(request):        
 
@@ -54,21 +52,19 @@ def signupPage(request):
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=raw_password)
             login(request, user)
-            return redirect('homepage')
+            return redirect('upload')
         else:
            form = CustomerRegisterForm()
 
     return render(request, 'signup.html', {'form':form})
     
-# ---------------------------Login Stuff Below-------------------------------------
 
 # @login_required(login_url="")
 def loginPage(request):
-    page = 'login'
 
     # If the user is already logged in and they try to go back to login page, send them to homepage
     if request.user.is_authenticated:
-        return redirect('homepage')
+        return redirect('upload')
 
     if request.method == 'POST':
 
@@ -86,13 +82,11 @@ def loginPage(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('homepage')
+            return redirect('upload')
         else:
             messages.error(request, 'Username OR Password does not exist')
 
-
-    context = {'page' : page}
-    return render(request, 'login.html', context)
+    return render(request, 'login.html')
 
 
 # Logout the Customer
@@ -100,6 +94,10 @@ def logoutCustomer(request):
     logout(request)
     return redirect('login')
 
+# -------------------------------------------------------------------------------
+
+
+# ------------------------Download, sending and zipinn files---------------------------
 # Sending image to the SISR website
 def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
@@ -107,12 +105,6 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     print(extension)
     content_type = 'image/' + extension
     headers = {'content-type': content_type}
-
-    # img = cv2.imread(image)       # MATTHEW
-    # # encode image as png
-    # _, img_encoded = cv2.imencode('.png', img)
-    # send http request with image and receive response
-    # imagearr = img_encoded.tostring()
 
     with open(image,'rb') as binary_file:
         binary_data = binary_file.read()
@@ -136,9 +128,8 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
-    #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
     return render(request, 'upload.html')
-    #return redirect('downloadZip')
+
 
 # Download upscaled zipped file received from the SISR website
 def downloadZip(request):
@@ -150,20 +141,10 @@ def downloadZip(request):
     Returns filename of downloaded file.
 
     """
-    
-    # CSIDL_PERSONAL = 5       # My Documents
-    # SHGFP_TYPE_CURRENT = 0   # Get current, not default value
-
-    # buf= create_unicode_buffer(wintypes.MAX_PATH)
-    # windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
-
-    # print(buf.value)
-    #directory = os.path.expanduser("~")+"/Downloads/"
 
     directory = "./"
     response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
-    # if response.status != 200:
-    #      raise ValueError('Failed to download')
+
     
     params = cgi.parse_header(
     response.headers.get('Content-Disposition', ''))[-1]
@@ -178,6 +159,7 @@ def downloadZip(request):
 
     return render(request,'download.html')
 
+
 # Send back the upscaled zip folder to user
 def sendBackZip(request):
     file_server = pathlib.Path('./upscaledZip.zip')
@@ -190,8 +172,10 @@ def sendBackZip(request):
         response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
         return response
 
+
 # Upload image to the website
 def upload(request):
+
     if request.method == 'POST' and request.FILES['upload']:
         upload = request.FILES['upload']
         # Send POST data to the UpscaleInformation
@@ -214,6 +198,7 @@ def upload(request):
 
         # Check if the uploaded file is .zip
         if extension == "zip":
+
             fss = FileSystemStorage()
             # Save the zip file to the images folder
             file = fss.save(upload.name, upload)
@@ -228,6 +213,7 @@ def upload(request):
 
             # check if each item in the extracted zip are of accepted extension types
             for filename in os.listdir("./images/extractedImages"):
+
                 f = os.path.join("./images/extractedImages", filename)
                 if os.path.isdir(f): # item is a directory
                     print("Error (folder in zip):", filename, "does not meet the requirements to upscale and therefore will not be processed.")
@@ -237,20 +223,25 @@ def upload(request):
                     except OSError as e:
                         print("Error: %s : %s" % ("./images/extractedImages/"+filename, e.strerror))
                     continue # do not do anything with it
-                # chekcing if it is a file
+
+                # checking if it is a file
                 elif os.path.isfile(f): # item is a file
                     # check the extension, if jpeg, png, tiff, or bmp accept
                     extension = filename[1:len(filename)].split(".", 1)[1]
                     accepted_types = ["jpeg", "png", "tiff", "bmp"]
+
                     if extension in accepted_types:
+
                         if check_image_size(request,f):
                             print(filename)
+
                         else:
                             # delete that file so that we can zip the valid files
                             try:
                                 os.remove("./images/extractedImages/"+filename)
                             except OSError as e:
                                 print("Error: %s : %s" % ("./images/extractedImages/"+filename, e.strerror))
+
                     else:
                         print("Error (file not correct type):", filename, "does not meet the requirements to upscale and therefore will not be processed.")
                         # delete that file so that we can zip the valid files
@@ -258,7 +249,7 @@ def upload(request):
                             os.remove("./images/extractedImages/"+filename)
                         except OSError as e:
                             print("Error: %s : %s" % ("./images/extractedImages/"+filename, e.strerror))
-                    # print(f, "filename:", filename)
+
                 else:
                     continue # do not do anything with it
 
@@ -274,22 +265,22 @@ def upload(request):
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
             cleanDirectories(request)
             return redirect('downloadZip')
-            #return render(request, 'download.html')
 
         else: # the uploaded file was a single image
+
             # Check if the uploaded image is valid size/resolution
             if check_image_size(request, upload):
                 fss = FileSystemStorage()
                 # Save the image to the images folder
                 file = fss.save(upload.name, upload)
                 file_url = fss.url(file) # Get the location of the file with just uploaded and saved
-                # print(file_url)
-
+ 
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 cleanDirectories(request)
                 return render(request, 'upload.html', {'file_url': file_url})
     return render(request, 'upload.html')
+
 
 # Remove/delete the files in the images and extractedImages folders
 def cleanDirectories(request):
@@ -319,42 +310,11 @@ def cleanDirectories(request):
                 os.remove("./images/"+file_in_main)
             except OSError as e:
                 print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
-    
-    #return render(request, 'clean.html')
+
+# -------------------------------------------------------------------------------
 
 
-# Downloadable link
-#def download_file(request): #, filename=''
-    # if filename != '':
-    # Define file name
-    # filename = '56364398.png'
-    # filename = 'validZip.zip'
-    # filename = 'upscaled.zip'
-    # Define the full file path
-    # filepath = "./images/upscaledImages/upscaled.zip"
-    # filepath = "./images/upscaledImages/56364398.png"
-    # filepath = "./images/validZip.zip"
-    # Open the file for reading content
-    # path = open(filepath, 'rb')
-    # Set the mime type
-    # mime_type, _ = mimetypes.guess_type(filepath)
-    # Set the return value of the HttpResponse
-    # response = HttpResponse(path, content_type=mime_type)
-    # Set the HTTP header for sending to browser
-    # response['Content-Disposition'] = "attachment; filename=%s" % filename
-    # Return the response value
-   # return request
-    # else:
-    #     # return redirect('download_file', filename = './images/upscaledImages/56364398.png')
-    #     # return redirect(reverse('download_file', kwargs={'filename': './images/upscaledImages/56364398.png'}))
-    #     return render(request, 'download.html')
-
-
-def test_connection(request):
-    # return HttpResponse("TESTING")
-    req = requests.post('http://host.docker.internal:5000/', json={"data": "Hello"})
-    return HttpResponse(req.text)
-
+# ---------------------------Helper methods-------------------------------------
 def check_image_size(request, image):
     img= Image.open(image).convert('L') # open the saved image that the user uploaded and convert it to 2D from 3D
     np_img = numpy.array(img) #convert to a numpy array
@@ -371,3 +331,4 @@ def check_image_size(request, image):
         return False
     
     return True
+
