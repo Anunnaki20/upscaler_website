@@ -33,7 +33,11 @@ from pathlib import Path # Finds name of an image file
 
 # ---------------------------Login Stuff Below-------------------------------------
 # Signing up page
-def signupPage(request):        
+def signupPage(request):
+
+    # If the user is already logged in and they try to go back to login page, send them to homepage
+    if request.user.is_authenticated:
+        return redirect('upload')        
 
     form = CustomerRegisterForm()
     if request.method == 'POST':

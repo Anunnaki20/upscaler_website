@@ -20,9 +20,9 @@
   <div class="container d-flex h-100 p-3 mx-auto flex-column">
 
     <!-- Uploaded image area-->
-    <div class="row mx-auto">
-      <div class="col">
-        <div class="image-area mt-4 showcase-img"><img id="imageResult" src="#" alt="" class="img-fluid rounded shadow-sm d-block"></div>
+    <div class="row">
+      <div class="col mx-auto pt-4 card_background bg-primary">
+        <div class="image-area mx-auto showcase-img"><img id="imageResult" src="#" alt="" class="img-fluid rounded shadow-sm d-block"></div>
       </div>
     </div>
 
@@ -45,21 +45,8 @@
           </div>
         </div>
 
-        <!--Scale Selection Form-->
-        <div class="form-outline col-9 mx-auto py-3">
-          <b>Select Upscaling Factor:</b>
-          <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="scaleAmount" id="double" value="2" checked="checked">
-              <label class="form-check-label" for="double">x2</label>
-          </div>
-          <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="scaleAmount" id="quad" value="4">
-              <label class="form-check-label" for="quad">x4</label>
-          </div>
-        </div>
-
         <!-- Select Model -->
-        <div class="form-outline col-9 mx-auto py-3">
+        <div class="form-outline col-auto mx-auto py-3">
           <b>Select Model:</b>
           <select class="custom-select mr-sm-2" name="model" id="model">
           <option value="model.h5">Model.h5</option>
@@ -69,8 +56,18 @@
           </select>
         </div>
 
-        <!-- Quality Measurement -->
-        <div class="form-outline col-9 mx-auto py-3">
+        <!--Scale Selection Form-->
+        <div class="form-outline col-auto mx-auto py-3">
+          <b>Select Upscaling Factor:</b>
+          <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="scaleAmount" id="double" value="2" checked="checked">
+              <label class="form-check-label" for="double">x2</label>
+          </div>
+          <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="scaleAmount" id="quad" value="4">
+              <label class="form-check-label" for="quad">x4</label>
+          </div>
+
           <b>Quality Measure Check:</b>
           <div class="form-check form-check-inline">
               <input class="form-check-input" type="radio" name="quality" id="no" value=False checked="checked">
@@ -81,6 +78,7 @@
               <label class="form-check-label" for="quad">Yes</label>
           </div>
         </div>
+
 
         <!-- Submit button section -->
         <div class="form-outline col-9 mx-auto align-self-center py-3">
