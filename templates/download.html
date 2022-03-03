@@ -11,7 +11,8 @@
   
     <!-- Custom styles for download -->
     <link href="{% static 'styles/download.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href=" {% static 'styles/bootstrap-magnify.css' %}">
+    <!-- <link rel="stylesheet" href=" {% static 'styles/bootstrap-magnify.css' %}"> -->
+    <link rel="stylesheet" type="text/css" href="{% static 'styles/magnifier.css' %}">
   
 </head>
      
@@ -26,22 +27,19 @@
     </div>
 
 
-    
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
-    <script src="{% static 'js/bootstrap-magnify.js' %}"></script>
 
-    <div class="container">
+    <!-- <div class="container"> -->
         <div class="row">
             <div class="col img-responsive">
                 <p>Original</p>
-                <div class="image-area mx-auto showcase-img"><img data-toggle="magnify" src="{% static 'images/000087.png' %}"></div>
+                <div class="image-area mx-auto showcase-img"><img id="myimage" src="{% static 'images/000087.png' %}"></div>
             </div>
             <div class="col img-responsive">
                 <p>Upscaled</p>
-                <div class="image-area mx-auto showcase-img"><img data-toggle="magnify" src="{% static 'images/000087_x4_sisr.png' %}"></div>
+                <div class="image-area mx-auto showcase-img"><img id="myimage2" src="{% static 'images/000087_x4_sisr.png' %}"></div>
             </div>
         </div>
-    </div>
+    <!-- </div> -->
 
 
 
@@ -60,6 +58,20 @@
 
 
     </div>
+
+    <script type="text/javascript" src="{% static 'js/download.js' %}"></script>
+    <script>
+        /* Execute the magnify function: */
+        magnify("myimage", 3);
+        magnify("myimage2", 3);
+        /* Specify the id of the image, and the strength of the magnifier glass: */
+    </script>
+
+
+    <!-- <script type="text/javascript" src="{% static 'js/Event.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/Magnifier.js' %}"></script> -->
+    <!-- <script type="text/javascript" src="Gallery.js"></script> -->
+
 
 </body>
 {% endblock %}
