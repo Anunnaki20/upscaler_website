@@ -1,0 +1,56 @@
+
+/* removes a uplaod text area */
+#upload{
+    opacity: 0;
+}
+
+/* Position text in the upload area */
+#upload-label {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+}
+
+/* CSS for the image dashed area */
+.image-area {
+    border: 2px dashed rgba(255, 255, 255, 0.7);
+    padding: 1rem;
+    position: relative;
+    height: 23rem;
+    width: 23rem;
+}
+
+.image-area::before {
+    content: 'Uploaded image result';
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    z-index: 1;
+}
+
+.image-area img {
+    z-index: 2;
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.card_background{
+    height: 26rem;
+    max-width: 26rem;
+}
+
+.custom-select{
+    text-align-last: center;
+    border-radius: 10px;
+    width: 20rem;
+    height: 2rem;
+    margin-left: 1rem;
+    box-shadow: 0 0 5px rgba(100, 100, 100, 0.5);
+}

@@ -1,0 +1,11 @@
+
+.card_background{
+    width: 30rem;
+    height: 45rem;
+}
+
+
+/* Used for password and confirm password help text */ 
+.text-muted {
+    color: black!important;
+}

@@ -25,13 +25,6 @@ SCALE_CHOICES = [('double', 'x2'), ('quad', 'x4')]
 MODEL_CHOICES = [('model_h5', 'model.5'), ('model_4_t1024_h5', 'model_4_t1024.h5')]
 
 class UpscaleInformation(forms.Form):
-    # scaleAmount= forms.CharField(label='Select Scale Factor', widget=forms.RadioSelect(choices=SCALE_CHOICES))
-    # model = forms.MultipleChoiceField(
-    #     required=True,
-    #     widget=forms.CheckboxSelectMultiple,
-    #     choices=MODEL_CHOICES,
-    # )
-
     class Meta:
         model = Info
         fields = ['image', 'scaleAmount', 'model', 'qualityMeasure']
