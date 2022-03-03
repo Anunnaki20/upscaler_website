@@ -280,12 +280,13 @@ def upload(request):
             if check_image_size(request, upload):
                 fss = FileSystemStorage()
                 # Save the image to the images folder
-                file = fss.save("./extractedImages/" + upload.name, upload)
+                file = fss.save(upload.name, upload)
                 file_url = fss.url(file) # Get the location of the file with just uploaded and saved
-                shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
-                file_url = "/images/validZip.zip"
+                #shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
+                #file_url = "/images/validZip.zip"
                 ##### Send the image to the backend server #####
-                sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+                #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+                sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure)
                 cleanDirectories(request)
                 return redirect('downloadZip')
                 #return render(request, 'upload.html', {'file_url': file_url})
