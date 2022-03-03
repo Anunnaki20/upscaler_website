@@ -142,20 +142,20 @@ def downloadZip(request):
 
     """
 
-    directory = "./"
-    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    # directory = "./"
+    # response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
 
     
-    params = cgi.parse_header(
-    response.headers.get('Content-Disposition', ''))[-1]
-    if 'filename' not in params:
-        raise ValueError('Could not find a filename')
+    # params = cgi.parse_header(
+    # response.headers.get('Content-Disposition', ''))[-1]
+    # if 'filename' not in params:
+    #     raise ValueError('Could not find a filename')
 
-    filename = os.path.basename(params['filename'])
-    abs_path = os.path.join(directory, filename)
-    with open(abs_path, 'wb') as target:
-        response.raw.decode_content = True
-        shutil.copyfileobj(response.raw, target)
+    # filename = os.path.basename(params['filename'])
+    # abs_path = os.path.join(directory, filename)
+    # with open(abs_path, 'wb') as target:
+    #     response.raw.decode_content = True
+    #     shutil.copyfileobj(response.raw, target)
 
     return render(request,'download.html')
 

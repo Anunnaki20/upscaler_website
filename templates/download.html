@@ -9,8 +9,9 @@
     <title>Image upscaling through SISR</title>
     <meta name="viewport" content="width=device-width, initial-scale1">
   
-    <!-- Custom styles for main -->
-    <!-- <link href="{% static 'styles/signup.css' %}" rel="stylesheet"> -->
+    <!-- Custom styles for download -->
+    <link href="{% static 'styles/download.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href=" {% static 'styles/bootstrap-magnify.css' %}">
   
 </head>
      
@@ -23,6 +24,29 @@
             <div class="h1">Uploaded images have been upscaled</div>
         </div>
     </div>
+
+
+    
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+    <script src="{% static 'js/bootstrap-magnify.js' %}"></script>
+
+    <div class="container">
+        <div class="row">
+            <div class="col img-responsive">
+                <p>Original</p>
+                <div class="image-area mx-auto showcase-img"><img data-toggle="magnify" src="{% static 'images/000087.png' %}"></div>
+            </div>
+            <div class="col img-responsive">
+                <p>Upscaled</p>
+                <div class="image-area mx-auto showcase-img"><img data-toggle="magnify" src="{% static 'images/000087_x4_sisr.png' %}"></div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
 
     <div class="container justify-content-center align-content-center">
 
