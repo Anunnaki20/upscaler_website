@@ -54,7 +54,7 @@ def signupPage(request):
             login(request, user)
             return redirect('upload')
         else:
-           form = CustomerRegisterForm()
+           messages.error(request, 'Password does not match')
 
     return render(request, 'signup.html', {'form':form})
     
