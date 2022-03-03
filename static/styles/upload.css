@@ -45,3 +45,12 @@
     height: 26rem;
     max-width: 26rem;
 }
+
+.custom-select{
+    text-align-last: center;
+    border-radius: 10px;
+    width: 20rem;
+    height: 2rem;
+    margin-left: 1rem;
+    box-shadow: 0 0 5px rgba(100, 100, 100, 0.5);
+}
