@@ -8,6 +8,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm, TextInput, EmailInput, PasswordInput
 
 from home.models import Info
+from home.models import ModelInfo
 
 # Form structure
 
@@ -21,10 +22,15 @@ class CustomerRegisterForm(UserCreationForm):
         fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2', )
 
 
-SCALE_CHOICES = [('double', 'x2'), ('quad', 'x4')]
-MODEL_CHOICES = [('model_h5', 'model.5'), ('model_4_t1024_h5', 'model_4_t1024.h5')]
-
 class UpscaleInformation(forms.Form):
     class Meta:
         model = Info
         fields = ['image', 'scaleAmount', 'model', 'qualityMeasure']
+
+class ModelInformation(forms.Form):
+    # model = forms.FileField()
+    # modelDesc = forms.CharField(max_length=20, required=True, help_text='Required.')
+    # modelfilename = forms.CharField(max_length=255, required=False, help_text='Optional.')
+    class Meta:
+        model = ModelInfo
+        fields = ['modelDesc', 'model']

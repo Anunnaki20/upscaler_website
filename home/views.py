@@ -13,9 +13,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage #for uploading images
 from django.urls import reverse
+from django.core import serializers
 # from home.models import customer_report as report
 from home.forms import CustomerRegisterForm
 from home.forms import UpscaleInformation
+from home.forms import ModelInformation
+from home.models import ModelInfo
 
 import requests
 import base64
@@ -54,7 +57,7 @@ def signupPage(request):
             login(request, user)
             return redirect('upload')
         else:
-           form = CustomerRegisterForm()
+           messages.error(request, 'Password does not match')
 
     return render(request, 'signup.html', {'form':form})
     
@@ -175,8 +178,16 @@ def sendBackZip(request):
 
 # Upload image to the website
 def upload(request):
+    # Get the database information for the models
+    model_list = ModelInfo.objects.all()
+    # Put it in a json so that we can code the options in the javascript code
+    json_serializer = serializers.get_serializer("json")()
+    model_list_js = json_serializer.serialize(model_list, ensure_ascii=False)
 
     if request.method == 'POST' and request.FILES['upload']:
+        
+
+        # Get the form information and uploaded content
         upload = request.FILES['upload']
         # Send POST data to the UpscaleInformation
         form = UpscaleInformation(request.POST)
@@ -185,9 +196,13 @@ def upload(request):
         # Else display an error
         if form.is_valid():
             scaleAmount = request.POST.get('scaleAmount')
-            modelName = request.POST.get('model')
+            modelDesc = request.POST.get('model') # This value is the description
+            # Map the description to the filename so back end can work with it
+            for model in model_list:
+                if model.modelDesc == modelDesc:
+                    modelName = model.modelfilename
             qualityMeasure = request.POST.get('quality')
-            print("Scale:", scaleAmount, ", Model:", modelName, ", Quality Measure?:", qualityMeasure)
+            print("Scale:", scaleAmount, ", Model:", modelDesc, ", ModelFileName:", modelName, ", Quality Measure?:", qualityMeasure)
             # return render(request, 'info.html')
 
         # If it is then we will want to run a different function to handle the zip
@@ -278,8 +293,59 @@ def upload(request):
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 cleanDirectories(request)
-                return render(request, 'upload.html', {'file_url': file_url})
-    return render(request, 'upload.html')
+                return render(request, 'upload.html', {'file_url': file_url, 'model_list': model_list, 'model_list_js':model_list_js})
+    return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
+
+# Sending model to the SISR website
+def sendModel(request, modelfile, modelDesc):
+    # with open(modelfile,'rb') as binary_file:
+    #     binary_data = binary_file.read()
+    #     base64_encoded_data = base64.b64encode(binary_data)
+    #     model_message = base64_encoded_data.decode('utf-8')
+
+    # baseName = Path(model_message).stem
+    # print(baseName + " :basename")
+    # print(Path(model_message) + " :other test")
+    payload = {'modelDesc': modelDesc, 'filename': modelfile.name}
+    req = requests.post('http://host.docker.internal:5000/uploadModel', data=modelfile, params=payload)
+
+    return HttpResponse(req.text)
+
+# Upload model to the website
+def uploadModel(request):
+
+    if request.method == 'POST':
+        upload = request.FILES['upload_model']
+
+        # Send POST data to the UpscaleInformation
+        form = ModelInformation(request.POST, request.FILES)
+        # print("Model Name:", upload.name)
+        if form.is_valid():
+            modelDesc = request.POST.get('modelDesc')
+            # upload = request.FILES['upload_model']#.get('model')
+            modelfilename = upload.name
+            ### Update and add the information to the database ###
+            m = ModelInfo(modelDesc=modelDesc, modelfilename=modelfilename)
+            m.save()
+
+        ##### Send the image to the backend server #####
+        sendModel(request, upload, modelDesc)
+
+        return render(request, 'model_upload.html')
+    else:
+        form = ModelInformation()
+    return render(request, 'model_upload.html', {'form': form})
+
+
+# Testing for making the selection option dynamic
+# def get_models(request):
+#     model_list = ModelInfo.objects.all()
+
+#     json_serializer = serializers.get_serializer("json")()
+#     model_list_js = json_serializer.serialize(model_list, ensure_ascii=False)
+#     return render(request, 'testingDynamic.html',
+#         {'model_list': model_list, 'model_list_js':model_list_js})
+
 
 
 # Remove/delete the files in the images and extractedImages folders
