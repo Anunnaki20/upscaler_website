@@ -132,7 +132,10 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
     return render(request, 'upload.html')
+<<<<<<< HEAD
+=======
 
+>>>>>>> master
 
 # Download upscaled zipped file received from the SISR website
 def downloadZip(request):
@@ -160,6 +163,14 @@ def downloadZip(request):
     #     response.raw.decode_content = True
     #     shutil.copyfileobj(response.raw, target)
 
+    zipPath = "./"+filename
+    
+    # extract the images from the zip
+    with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+        zippedFiles = zip_ref.namelist()
+        if len(zippedFiles)==1:
+            zip_ref.extractall("./images/upscaledImages")
+            
     return render(request,'download.html')
 
 
@@ -220,7 +231,7 @@ def upload(request):
             file_url = fss.url(file) # Get the location of the file with just uploaded and saved
 
             ######################################################
-            # unzip the file and check image size for each image #
+            # unzip the file and check image size and type for each image #
             ######################################################
             # extract the images from the zip
             with zipfile.ZipFile("."+file_url, 'r') as zip_ref:
@@ -269,7 +280,7 @@ def upload(request):
                     continue # do not do anything with it
 
             ######################################################
-            # Zip all the images that meet the size requirement #
+            # Zip all the images that meet the size and type requirement #
             ######################################################
             shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
             file_url = "/images/validZip.zip"
@@ -289,6 +300,17 @@ def upload(request):
                 # Save the image to the images folder
                 file = fss.save(upload.name, upload)
                 file_url = fss.url(file) # Get the location of the file with just uploaded and saved
+<<<<<<< HEAD
+                #shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
+                #file_url = "/images/validZip.zip"
+                ##### Send the image to the backend server #####
+                #sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
+                sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure)
+                #cleanDirectories(request)
+                return redirect('downloadZip')
+                #return render(request, 'upload.html', {'file_url': file_url})
+    return render(request, 'upload.html')
+=======
  
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
@@ -347,6 +369,7 @@ def uploadModel(request):
 #         {'model_list': model_list, 'model_list_js':model_list_js})
 
 
+>>>>>>> master
 
 # Remove/delete the files in the images and extractedImages folders
 def cleanDirectories(request):
@@ -376,6 +399,49 @@ def cleanDirectories(request):
                 os.remove("./images/"+file_in_main)
             except OSError as e:
                 print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+<<<<<<< HEAD
+    
+    # try:
+    #     os.remove("./upscaledZip.zip")
+    # except OSError as e:
+    #     print("Error: %s : %s" % ("./upScaledZip.zip", e.strerror))
+    # return request
+    #return render(request, 'clean.html')
+
+
+# Downloadable link
+#def download_file(request): #, filename=''
+    # if filename != '':
+    # Define file name
+    # filename = '56364398.png'
+    # filename = 'validZip.zip'
+    # filename = 'upscaled.zip'
+    # Define the full file path
+    # filepath = "./images/upscaledImages/upscaled.zip"
+    # filepath = "./images/upscaledImages/56364398.png"
+    # filepath = "./images/validZip.zip"
+    # Open the file for reading content
+    # path = open(filepath, 'rb')
+    # Set the mime type
+    # mime_type, _ = mimetypes.guess_type(filepath)
+    # Set the return value of the HttpResponse
+    # response = HttpResponse(path, content_type=mime_type)
+    # Set the HTTP header for sending to browser
+    # response['Content-Disposition'] = "attachment; filename=%s" % filename
+    # Return the response value
+   # return request
+    # else:
+    #     # return redirect('download_file', filename = './images/upscaledImages/56364398.png')
+    #     # return redirect(reverse('download_file', kwargs={'filename': './images/upscaledImages/56364398.png'}))
+    #     return render(request, 'download.html')
+
+
+def test_connection(request):
+    # return HttpResponse("TESTING")
+    req = requests.post('http://host.docker.internal:5000/', json={"data": "Hello"})
+    return HttpResponse(req.text)
+=======
+>>>>>>> master
 
 # -------------------------------------------------------------------------------
 
