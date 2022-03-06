@@ -106,8 +106,6 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
     extension = image[1:len(image)].split(".", 1)[1]
     print(extension)
-    content_type = 'image/' + extension
-    headers = {'content-type': content_type}
 
     with open(image,'rb') as binary_file:
         binary_data = binary_file.read()
@@ -123,9 +121,6 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
 
 # Initially sending the received zip folder to the SISR website
 def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
-    content_type = 'application/zip'
-    headers = {'content-type': content_type}
-
     fsock = open(zipfile, 'rb')
 
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
@@ -145,21 +140,33 @@ def downloadZip(request):
 
     """
 
-    # directory = "./"
-    # response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    directory = "./"
+    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
 
     
-    # params = cgi.parse_header(
-    # response.headers.get('Content-Disposition', ''))[-1]
-    # if 'filename' not in params:
-    #     raise ValueError('Could not find a filename')
+    params = cgi.parse_header(
+    response.headers.get('Content-Disposition', ''))[-1]
+    if 'filename' not in params:
+        raise ValueError('Could not find a filename')
 
-    # filename = os.path.basename(params['filename'])
-    # abs_path = os.path.join(directory, filename)
-    # with open(abs_path, 'wb') as target:
-    #     response.raw.decode_content = True
-    #     shutil.copyfileobj(response.raw, target)
+    filename = os.path.basename(params['filename'])
+    abs_path = os.path.join(directory, filename)
+    with open(abs_path, 'wb') as target:
+        response.raw.decode_content = True
+        shutil.copyfileobj(response.raw, target)
 
+    zipPath = "./"+filename
+    
+    # extract the images from the zip
+    with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+        zippedFiles = zip_ref.namelist()
+        if len(zippedFiles)==1:
+            # Create directory if it doesn't exist
+            if not os.path.isdir("./images/upscaledImages"):
+                os.mkdir("./images/upscaledImages")
+
+            zip_ref.extractall("./images/upscaledImages")
+            
     return render(request,'download.html')
 
 
@@ -174,6 +181,7 @@ def sendBackZip(request):
         response = FileResponse(file_to_download, content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
         return response
+
 
 
 # Upload image to the website
@@ -220,8 +228,9 @@ def upload(request):
             file_url = fss.url(file) # Get the location of the file with just uploaded and saved
 
             ######################################################
-            # unzip the file and check image size for each image #
+            # unzip the file and check image size and type for each image #
             ######################################################
+
             # extract the images from the zip
             with zipfile.ZipFile("."+file_url, 'r') as zip_ref:
                 zip_ref.extractall("./images/extractedImages")
@@ -269,7 +278,7 @@ def upload(request):
                     continue # do not do anything with it
 
             ######################################################
-            # Zip all the images that meet the size requirement #
+            # Zip all the images that meet the size and type requirement #
             ######################################################
             shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
             file_url = "/images/validZip.zip"
@@ -292,24 +301,17 @@ def upload(request):
  
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-                cleanDirectories(request)
-                return render(request, 'upload.html', {'file_url': file_url, 'model_list': model_list, 'model_list_js':model_list_js})
+                # cleanDirectories(request)
+                return redirect('downloadZip')
     return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
+
 
 # Sending model to the SISR website
 def sendModel(request, modelfile, modelDesc):
-    # with open(modelfile,'rb') as binary_file:
-    #     binary_data = binary_file.read()
-    #     base64_encoded_data = base64.b64encode(binary_data)
-    #     model_message = base64_encoded_data.decode('utf-8')
-
-    # baseName = Path(model_message).stem
-    # print(baseName + " :basename")
-    # print(Path(model_message) + " :other test")
     payload = {'modelDesc': modelDesc, 'filename': modelfile.name}
     req = requests.post('http://host.docker.internal:5000/uploadModel', data=modelfile, params=payload)
-
     return HttpResponse(req.text)
+
 
 # Upload model to the website
 def uploadModel(request):
@@ -335,17 +337,6 @@ def uploadModel(request):
     else:
         form = ModelInformation()
     return render(request, 'model_upload.html', {'form': form})
-
-
-# Testing for making the selection option dynamic
-# def get_models(request):
-#     model_list = ModelInfo.objects.all()
-
-#     json_serializer = serializers.get_serializer("json")()
-#     model_list_js = json_serializer.serialize(model_list, ensure_ascii=False)
-#     return render(request, 'testingDynamic.html',
-#         {'model_list': model_list, 'model_list_js':model_list_js})
-
 
 
 # Remove/delete the files in the images and extractedImages folders

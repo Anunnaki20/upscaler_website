@@ -13,7 +13,6 @@ urlpatterns = [
     path('downloadZip/', views.downloadZip, name="downloadZip"),
     path('sendBackZip/', views.sendBackZip, name="sendBackZip"),
     path('uploadModel/', views.uploadModel, name='uploadModel'),
-    # path('get_models/', views.get_models, name="get_models"),
 ]
 
 if settings.DEBUG: # new
