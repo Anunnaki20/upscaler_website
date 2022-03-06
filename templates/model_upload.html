@@ -1,0 +1,72 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}  
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Image upscaling through SISR</title>
+  <meta name="viewport" content="width=device-width, initial-scale1">
+
+  <!-- Custom styles for main -->
+  <link href="{% static 'styles/uploadModel.css' %}" rel="stylesheet">
+
+</head>
+   
+
+<body>
+
+  <div class="container d-flex h-100 p-3 mx-auto flex-column">
+
+    <!-- Upload model From-->
+    <div class="row">
+      <p class="font-italic text-black text-center pt-5">Upload a pre-trained model.</p>
+      <form method="POST" action="{% url 'uploadModel' %}" enctype="multipart/form-data" class="mx-auto">
+        {%  csrf_token %}
+    
+        <!-- Upload model section -->
+        <div class="form-outline col-9 mx-auto">
+          <div class="input-group mb-3 px-2 py-2 rounded-pill bg-white shadow-sm">
+            <label id="upload-label" for="upload_model" class="font-weight-light text-muted">Accepted file types: .h5</label>
+            <input id="upload_model" name="upload_model" type="file" onchange="readURL(this);" class="form-control border-0"  accept=".h5" required>
+
+            <!-- The upload blue button on the right side -->
+            <div class="input-group-append">
+                <label for="upload_model" class="btn btn-primary m-0 rounded-pill px-4"> <i class="mr-2 text-muted"></i><small class="text-uppercase font-weight-bold text-white">Choose file</small></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text field for Model Description -->
+        <div class="form-outline col-auto py-3">
+          <b>Brief Description of Model:</b>
+          <!-- <label for="modelDescription">Example textarea</label> -->
+          <input class="form-control" type="text" id="modelDesc" name="modelDesc" placeholder="Model Description... (20 character limit)" maxlength="20" required></input>
+        </div>
+
+
+        <!-- Submit button section -->
+        <div class="form-outline col-9 mx-auto align-self-center py-3">
+            <button type="submit" class="btn btn-primary m-0 rounded-pill px-4" onclick="animateProgress()">Submit</button>
+        </div>
+
+        <div class="col-9 mx-auto">
+          <div class="progress">
+            <div id="progress" class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+          </div>
+        </div>
+
+      </form>
+
+
+    </div>
+  </div>
+  
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="{% static 'js/upload.js' %}"></script>
+</body>
+
+   
+
+{% endblock %}

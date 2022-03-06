@@ -1,31 +1,49 @@
 {% extends 'index.html' %}
 
+{% load static %}
 {% block content %}
+{% load crispy_forms_tags %}  
 
-        <h2>Please sign up</h2>
-        <form method="POST" action="">
-            {% csrf_token %}
-            {% for field in form %}
-            <p>
-                {{ field.label_tag }}<br>
-                {{ field }}
 
-                {% if field.help_text %}
-                    <small style="color:grey">{{ field.help_text }}</small>
-                {% endif %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Image upscaling through SISR</title>
+    <meta name="viewport" content="width=device-width, initial-scale1">
+  
+    <!-- Custom styles for main -->
+    <link href="{% static 'styles/signup.css' %}" rel="stylesheet">
+  
+</head>
+     
 
-                {% for error in field.errors %}
-                    <p style="color:red">{{ error }}</p>
-                {% endfor %}
-            </p>
-            {% endfor %}
-            <!-- <label>Username:</label>
-            <input type="text" value="username" placeholder="Enter Username"/>
-            <label>Email Address:</label>
-            <input type="text" value="email" placeholder="Enter Email Address"/>
-            <label>Password:</label>
-            <input type="text" value="password" placeholder="Enter Password"/> -->
-            <button type="submit">Sign up</button>
-        </form>
+<body class="d-flex h-100 text-center text-white">
+
+    <!-- Title  -->
+    <div class="container justify-content-center align-content-center py-3">
+        <div class="row pt-5 justify-content-center align-content-center">
+            <div class="h1">Sign Up</div>
+        </div>
+    </div>
+
+
+    <!-- Sign Up form -->
+    <div class="container vertical-center justify-content-center align-content-center">
+        <div class="row card_background justify-content-center align-content-center">
+            <form method="POST" action="">
+            
+                {% csrf_token %}
+                {{form | crispy}}
+
+                <!-- Sign Up button -->
+                <input class="signup btn btn-lg btn-primary" type="submit" value="Sign up"/>
+                    
+                <!-- Login Redirect Button -->
+                <a href="{% url 'login' %}" class="btn btn-lg btn-primary">Login</a>
+            </form>
+        </div>
+    </div>
+
+</body>
 
 {% endblock %}

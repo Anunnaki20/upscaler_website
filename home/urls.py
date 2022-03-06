@@ -6,16 +6,14 @@ from . import views
 
 
 urlpatterns = [
-    path('', views.loginPage, name='login'),        # Login is the default page
-     path('signup/', views.signupPage, name='signup'),
-     path('clean/', views.cleanDirectories, name='cleanDirectories'),
-     path("upload/", views.upload, name="upload"),
-     #path("download/", views.download_file, name="download_file"),
-     path("downloadZip/", views.downloadZip, name="downloadZip"),
-     path("sendBackZip/", views.sendBackZip, name="sendBackZip"),
-     #path("download//", views.download_file, name="download_file"),
-     path("test/", views.test_connection),
-    #  path("download/", views.download, name="download"),
+    path('login/', views.loginPage, name='login'),        
+    path('signup/', views.signupPage, name='signup'),
+    path('logout/', views.logoutUser, name='logout'),
+    path('', views.upload, name="upload"), # Upload is the default page
+    path('downloadZip/', views.downloadZip, name="downloadZip"),
+    path('sendBackZip/', views.sendBackZip, name="sendBackZip"),
+    path('uploadModel/', views.uploadModel, name='uploadModel'),
+    # path('get_models/', views.get_models, name="get_models"),
 ]
 
 if settings.DEBUG: # new

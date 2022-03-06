@@ -1,19 +1,65 @@
 {% extends 'index.html' %}
+{% load static %}
 
 {% block content %}
 
-    
-        <p>Welcome Back. Please login to your account</p>
-        <form method="POST" action="">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <!-- <label>Username:</label>
-            <input type="text" value="username" placeholder="Enter Username"/>
-            <label>Email Address:</label>
-            <input type="text" value="email" placeholder="Enter Email Address"/>
-            <label>Password:</label>
-            <input type="text" value="password" placeholder="Enter Password"/> -->
-            <button class="btn btn-primary" type="submit">Register</button>
-        </form>
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Image upscaling through SISR</title>
+    <meta name="viewport" content="width=device-width, initial-scale1">
+  
+    <!-- Custom styles for main -->
+    <link href="{% static 'styles/login.css' %}" rel="stylesheet">
+  
+</head>
+
+<body class="d-flex h-100 title text-center text-white">
+
+    <!-- Title -->
+    <div class="container">
+        <div class="container justify-content-center align-content-center">
+            <div class="row py-5 justify-content-center align-content-center">
+                <div class="h1">Login</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container vertical-center justify-content-center align-content-center">
+        <div class="row card_background justify-content-center align-content-center">
+            <form method="POST" action="">
+                {% csrf_token %}
+
+                <!-- Username Input -->
+                <div class="form-outline mb-4 col-auto justify-content-center align-content-center">
+                    <label class="form-label" for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Username" class="form-control" />
+                </div>
+
+                <!-- Password Input -->
+                <div class="form-outline mb-4 col-auto justify-content-center align-content-center">
+                    <label class="form-label" for="password">Password:</label>
+                    <input type="password" id="password" name="password" placeholder="" class="form-control" />
+                </div>
+
+                <!-- Login Up button -->
+                <button class="btn btn-primary btn-lg" type="submit">Login</button>
+
+                <!-- Sign Up button -->
+                <a href="{% url 'signup' %}" class="btn btn-lg btn-primary">Sign Up</a>
+            </form>
+        </div>
+    </div>
+
+</body>
 
 {% endblock %}

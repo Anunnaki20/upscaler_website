@@ -1,150 +1,146 @@
 {% extends 'index.html' %}
+{% load static %}
 
 {% block content %}  
-<!-- 
+
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-  * {
-    box-sizing: border-box;
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Image upscaling through SISR</title>
+  <meta name="viewport" content="width=device-width, initial-scale1">
+
+  <!-- Custom styles for main -->
+  <link href="{% static 'styles/upload.css' %}" rel="stylesheet">
+
+</head>
+   
+<!-- ------------------------------------------------------------ -->
+<!-- Code for getting each of the model options from the database -->
+<!-- ------------------------------------------------------------ -->
+<script>
+  function generateModelOptions() {
+      // Get the database information
+      var models = '{{model_list_js|escapejs}}';
+
+      // variable to hold all the different model options
+      var modelOptions = ""; //<option value='0'>select</option>
+
+      // Create a variable to read the database correctly
+      var obj = JSON.parse(models);
+      function getOptions(obj) {
+          for(var k in obj) {
+              if(obj[k] instanceof Object) {
+                  getOptions(obj[k]);
+              } else {
+                  // Check to see if the we are looking at the database information that is the model Description
+                  if (obj[k] === "home.modelinfo" || !isNaN(obj[k]) || (obj[k]).substr((obj[k]).length - 3) === ".h5"){
+                      // not model description so do nothing and move on
+                  }
+                  else{ // This is the model description so add it as an option
+                      modelOptions += "<option value='"+obj[k]+"'>"+obj[k]+"</option>";
+                  }
+              };
+          }
+      };
+      getOptions(obj);
+
+      // Place the Model options in the select form
+      document.getElementById('model').innerHTML = modelOptions;
   }
   
-  /* Create two equal columns that floats next to each other */
-  .column {
-    float: left;
-    width: 50%;
-    /* Should be removed. Only for demonstration */
-  }
+</script>
 
-  /* Clear floats after the columns */
-  .row:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-  </style>
-  </head> -->
-   
+<!-- ------------------------------------------------------------ -->
+<!-- ------------------------------------------------------------ -->
+<!-- ------------------------------------------------------------ -->
 
-<div class="container">
-  <div class="row">
-    <div class="col">
-  <form method="POST" action="{% url 'upload' %}" enctype="multipart/form-data">
-    {%  csrf_token %}
+<body onload="generateModelOptions()">
 
-    <!-- <div class="row">
-      <div class="column"> -->
-        <!-- <div style="width:300px;float:left"> -->
-      
+  <div class="container d-flex h-100 p-3 mx-auto flex-column">
 
-    <!--Upload Image-->
-    <h2 class="my-4">Upload an image to upscale.</h2>
-      <input type="file" name="upload" accept=".jpeg, .png, .tiff, .bmp, .zip" required> <!-- accept="image/*"-->
-      <br>
-      <small>Accepted file types: [.jpeg, .png, .tiff, .bmp, .zip]</small>
-
-    <br>
-
-    <!--Scale Selection Form-->
-    <p><b>Select Upscaling Factor:</b></p>
-    <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="scaleAmount" id="double" value="2" checked="checked"> <!-- inlineRadioOptions -->
-        <label class="form-check-label" for="double">x2</label>
-    </div>
-    <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="scaleAmount" id="quad" value="4"> <!-- inlineRadioOptions -->
-        <label class="form-check-label" for="quad">x4</label>
-    </div>
-
-    <br>
-
-    <p><b>Select Model:</b></p>
-    <!-- <div class="form-row align-items-center"> -->
-    <div class="col-auto my-1">
-        <label class="mr-sm-2 sr-only" for="model">Model</label> <!-- inlineFormCustomSelect -->
-        <select class="custom-select mr-sm-2" name="model" id="model"> <!-- inlineFormCustomSelect -->
-        <option value="model.h5" selected>Model.h5 (default)</option>
-        <option value="model_4_t1024.h5">Model_4_t1024.h5</option>
-        <option value="model_4_t1024_e1000.h5">Model_4_t1024_e1000.h5</option>
-        <option value="model_2_t1024.h5">Model_2_t1024.h5</option>
-        </select>
-    </div>
-
-    <br>
-
-    <!--Quality Measurement Selection Form-->
-    <p><b>Quality Measure Check:</b></p>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="quality" id="no" value=False checked="checked"> <!-- inlineRadioOptions -->
-            <label class="form-check-label" for="double">No</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="quality" id="yes" value=True> <!-- inlineRadioOptions -->
-            <label class="form-check-label" for="quad">Yes</label>
-        </div>
-
-    <br>
-
-    <div class="col-auto my-1">
-        <button type="submit" class="btn btn-dark my-4">Submit</button>
-    </div>
-  </form>
-  </div>
-<!-- </form> -->
-        <!-- </div> -->
-    <!-- <br>
-    <br> -->
-
-    <!-- <div class="column"> -->
-
-
-      <!-- <div style="width:1000px;float:right;text-align:left"> -->
-        <div class="col">
-    <!--See Image Uploaded-->
-    <h2 class="my-4">Uploaded Image</h2>
-    <!-- <div class="row"> -->
-      {% if file_url %}
-      <!-- <div class="col-6 pb-4"> -->
-        <img src="{{ file_url }}" class="img-fluid">
-        <br>
-        <a class="btn btn-dark my-4" href="/">Return to Homepage</a>
-      {% else %}
-      <p>No Image Uploaded Yet.</p>
-      {% endif %}
-    </div>
-  </div>
-  </div>
-
-
-
-
-
-
-
-    <!-- Upload Image
-    <h2 class="my-4">Upload an image to upscale.</h2>
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-          <input type="file" name="upload" accept=".jpeg, .png, .tiff, .bmp, .zip" required> <!-- accept="image/*"
-          <br>
-          <p>Accepted file types: [.jpeg, .png, .tiff, .bmp, .zip]</p>
-          <button class="btn btn-dark my-4" type="submit">Submit</button>
-    </form>
-
-    <!--See Image Uploaded
-    <h2 class="my-4">Uploaded Image</h2>
+    <!-- Uploaded image area-->
     <div class="row">
-      {% if file_url %}
-      <div class="col-lg-4 col-md-6 col-sm-12 pb-4">
-        <img src="{{ file_url }}" class="img-fluid">
-        <br>
-        <a class="btn btn-dark my-4" href="/">Return to Homepage</a>
-      {% else %}
-      <p>No Image Uploaded Yet.</p>
-      {% endif %}
+      <div class="col mx-auto pt-4 card_background bg-primary">
+        <div class="image-area mx-auto showcase-img"><img id="imageResult" src="#" alt="" class="img-fluid rounded shadow-sm d-block"></div>
+      </div>
     </div>
 
-  </div> -->
+    <!-- Upload image From-->
+    <div class="row">
+      <p class="font-italic text-black text-center pt-5">Upload an image or a zip file of images to be upscaled.</p>
+      <form method="POST" action="{% url 'upload' %}" enctype="multipart/form-data" class="mx-auto">
+        {%  csrf_token %}
     
+        <!-- Upload image section -->
+        <div class="form-outline col-9 mx-auto">
+          <div class="input-group mb-3 px-2 py-2 rounded-pill bg-white shadow-sm">
+            <label id="upload-label" for="upload" class="font-weight-light text-muted">Accepted file types: .jpeg, .png, .tiff, .bmp, .zip</label>
+            <input id="upload" name="upload" type="file" onchange="readURL(this);" class="form-control border-0"  accept="image/jpeg, image/png, image/tiff, image/bmp, .zip" required>
+
+            <!-- The upload blue button on the right side -->
+            <div class="input-group-append">
+                <label for="upload" class="btn btn-primary m-0 rounded-pill px-4"> <i class="mr-2 text-muted"></i><small class="text-uppercase font-weight-bold text-white">Choose file</small></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Select Model -->
+        <div class="form-outline col-auto py-3">
+          <b>Select Model:</b>
+          <select class="custom-select mr-sm-2" name="model" id="model"></select>
+          <!-- <select class="custom-select mr-sm-2" name="model" id="model"> -->
+          <!-- <option value="model.h5">Model.h5</option>
+          <option value="model_4_t1024.h5">Model_4_t1024.h5</option>
+          <option value="model_4_t1024_e1000.h5" selected>Model_4_t1024_e1000.h5</option>
+          <option value="model_2_t1024.h5">Model_2_t1024.h5</option> -->
+          <!-- </select> -->
+        </div>
+
+        <!--Scale Selection Form-->
+        <div class="form-outline col-auto mx-auto py-3">
+          <b>Select Upscaling Factor:</b>
+          <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="scaleAmount" id="double" value="2" checked="checked">
+              <label class="form-check-label" for="double">x2</label>
+          </div>
+          <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="scaleAmount" id="quad" value="4">
+              <label class="form-check-label" for="quad">x4</label>
+          </div>
+
+          <b>Quality Measure Check:</b>
+          <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="quality" id="no" value=False checked="checked">
+              <label class="form-check-label" for="double">No</label>
+          </div>
+          <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="quality" id="yes" value=True>
+              <label class="form-check-label" for="quad">Yes</label>
+          </div>
+        </div>
+
+
+        <!-- Submit button section -->
+        <div class="form-outline col-9 mx-auto align-self-center py-3">
+            <button type="submit" class="btn btn-primary m-0 rounded-pill px-4" onclick="animateProgress()">Submit</button>
+        </div>
+
+        <div class="col-9 mx-auto">
+          <div class="progress">
+            <div id="progress" class="progress-bar progress-bar-striped" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+          </div>
+        </div>
+
+      </form>
+
+
+    </div>
+  </div>
+  
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="{% static 'js/upload.js' %}"></script>
+</body>
+
+   
 
 {% endblock %}
