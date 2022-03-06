@@ -19,3 +19,11 @@ class Info(models.Model):
 
     def __str__(self):
         return self.scaleAmount + ", " + self.model + ", " + self.qualityMeasure
+
+class ModelInfo(models.Model):
+    # model = models.FileField()
+    modelDesc = models.CharField(max_length=20, null=False)
+    modelfilename = models.CharField(max_length=255, null=False)
+
+    def __str__(self):
+        return self.modelDesc + ", " + self.modelfilename
