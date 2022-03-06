@@ -100,7 +100,7 @@ def logoutUser(request):
 # -------------------------------------------------------------------------------
 
 
-# ------------------------Download, sending and zipinn files---------------------------
+# ------------------------Download, sending and ziping files---------------------------
 # Sending image to the SISR website
 def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
@@ -127,6 +127,7 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
 
     return render(request, 'upload.html')
+
 
 # Download upscaled zipped file received from the SISR website
 def downloadZip(request):
@@ -160,6 +161,7 @@ def downloadZip(request):
     with zipfile.ZipFile(zipPath, 'r') as zip_ref:
         zippedFiles = zip_ref.namelist()
         if len(zippedFiles)==1:
+            
             # Create directory if it doesn't exist
             if not os.path.isdir("./images/upscaledImages"):
                 os.mkdir("./images/upscaledImages")
