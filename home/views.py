@@ -347,6 +347,7 @@ def uploadModel(request):
 #         {'model_list': model_list, 'model_list_js':model_list_js})
 
 
+
 # Remove/delete the files in the images and extractedImages folders
 def cleanDirectories(request):
     ####################################
