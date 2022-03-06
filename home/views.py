@@ -128,7 +128,6 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
 
     return render(request, 'upload.html')
 
-
 # Download upscaled zipped file received from the SISR website
 def downloadZip(request):
     """Download file from url to directory
