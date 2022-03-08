@@ -206,10 +206,12 @@ def sendBackZip(request):
         cleanDirectories()
         return response
 
+
 # redirect the user back to the upload page while clearing folders
 def backhome(request):
     cleanDirectories()
-    return render(request,'upload.html')
+    return redirect('upload')
+
 
 # Upload image to the website
 def upload(request):
