@@ -45,25 +45,27 @@
             </div>
             <div class="column justify-content-center">
                 <table style="width: 100%">
-                    <tr>
-                        <th></th>
-                        <th>NearNeighour</th>
-                        <th>Bi-Linear</th>
-                        <th>Bi-Cubic</th>
-                        <th>Reconstruct</th>
-                        <th>Difference</th>
-                    </tr>
-                    
-                    {% for line in results %}
+                    {% if results %}
                         <tr>
-                        {% for metricVal in line %}
-                            <td>{{ metricVal }}</td>
-                        {% endfor %}
+                            <th></th>
+                            <th>NearNeighour</th>
+                            <th>Bi-Linear</th>
+                            <th>Bi-Cubic</th>
+                            <th>Reconstruct</th>
+                            <th>Difference</th>
                         </tr>
-                    {% endfor %}
-                    
+                        
+                        {% for line in results %}
+                            <tr>
+                            {% for metricVal in line %}
+                                <td>{{ metricVal }}</td>
+                            {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr></tr>
+                    {% endif %}
                 </table>
-
             </div>
         </div>
 
