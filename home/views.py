@@ -138,33 +138,35 @@ def downloadZip(request):
 
     """
 
-    # directory = "./"
-    # response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    context = {}
+
+    directory = "./"
+    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
 
     
-    # params = cgi.parse_header(
-    # response.headers.get('Content-Disposition', ''))[-1]
-    # if 'filename' not in params:
-    #     raise ValueError('Could not find a filename')
+    params = cgi.parse_header(
+    response.headers.get('Content-Disposition', ''))[-1]
+    if 'filename' not in params:
+        raise ValueError('Could not find a filename')
 
-    # filename = os.path.basename(params['filename'])
-    # abs_path = os.path.join(directory, filename)
-    # with open(abs_path, 'wb') as target:
-    #     response.raw.decode_content = True
-    #     shutil.copyfileobj(response.raw, target)
+    filename = os.path.basename(params['filename'])
+    abs_path = os.path.join(directory, filename)
+    with open(abs_path, 'wb') as target:
+        response.raw.decode_content = True
+        shutil.copyfileobj(response.raw, target)
 
-    # zipPath = "./"+filename
+    zipPath = "./"+filename
     
-    # # extract the images from the zip
-    # with zipfile.ZipFile(zipPath, 'r') as zip_ref:
-    #     zippedFiles = zip_ref.namelist()
-    #     if len(zippedFiles)==1:
+    # extract the images from the zip
+    with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+        zippedFiles = zip_ref.namelist()
+        if len(zippedFiles)==1:
             
-    #         # Create directory if it doesn't exist
-    #         if not os.path.isdir("./images/upscaledImages"):
-    #             os.mkdir("./images/upscaledImages")
+            # Create directory if it doesn't exist
+            if not os.path.isdir("./images/upscaledImages"):
+                os.mkdir("./images/upscaledImages")
 
-    #         zip_ref.extractall("./images/upscaledImages")
+            zip_ref.extractall("./images/upscaledImages")
             
     return render(request,'download.html')
 
@@ -179,6 +181,7 @@ def sendBackZip(request):
         os.remove("./upscaledZip.zip")
         response = FileResponse(file_to_download, content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
+        cleanDirectories()
         return response
 
 
@@ -286,7 +289,7 @@ def upload(request):
             # Send the zip file to the backend server #
             ######################################################
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-            cleanDirectories(request)
+            cleanDirectories()
             return redirect('downloadZip')
 
         else: # the uploaded file was a single image
@@ -300,8 +303,8 @@ def upload(request):
  
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-                # cleanDirectories(request)
                 return redirect('downloadZip')
+
     return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
 
 
@@ -339,33 +342,48 @@ def uploadModel(request):
 
 
 # Remove/delete the files in the images and extractedImages folders
-def cleanDirectories(request):
+def cleanDirectories():
     ####################################
     # Delete the items in subdirectory #
     ####################################
-    for file_in_sub in os.listdir("./images/extractedImages"):
-        if os.path.isdir("./images/extractedImages/"+file_in_sub):
-            try:
-                shutil.rmtree("./images/extractedImages/"+file_in_sub)
-            except OSError as e:
-                print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
-        else:
-            try:
-                os.remove("./images/extractedImages/"+file_in_sub)
-            except OSError as e:
-                print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
+    if os.path.exists("./images/extractedImages"):
+        for file_in_sub in os.listdir("./images/extractedImages"):
+            if os.path.isdir("./images/extractedImages/"+file_in_sub):
+                try:
+                    shutil.rmtree("./images/extractedImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
+            else:
+                try:
+                    os.remove("./images/extractedImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
 
     ########################################
     # Delete the items in images directory #
     ########################################
-    for file_in_main in os.listdir("./images"):
-        if os.path.isdir("./images/"+file_in_main): # item is a directory
-            continue # do not delete
-        elif os.path.isfile("./images/"+file_in_main): # item is a file
-            try:
-                os.remove("./images/"+file_in_main)
-            except OSError as e:
-                print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+    if os.path.exists("./images"):
+        for file_in_main in os.listdir("./images"):
+            if os.path.isdir("./images/"+file_in_main): # item is a directory
+                continue # do not delete
+            elif os.path.isfile("./images/"+file_in_main): # item is a file
+                try:
+                    os.remove("./images/"+file_in_main)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+    
+    if os.path.exists("./images/upscaledImages"):
+        for file_in_sub in os.listdir("./images/upscaledImages"):
+            if os.path.isdir("./images/upscaledImages/"+file_in_sub):
+                try:
+                    shutil.rmtree("./images/upscaledImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_sub, e.strerror))
+            else:
+                try:
+                    os.remove("./images/upscaledImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_sub, e.strerror))
 
 # -------------------------------------------------------------------------------
 
