@@ -42,7 +42,29 @@
             <div class="column justify-content-center">
             <a href="{% url 'sendBackZip' %}" class="btn btn-lg btn-primary">Download</a>
             <a href="{% url 'backhome' %}" class="btn btn-lg btn-primary">Main Page</a>
-        </div>
+            </div>
+            <div class="column justify-content-center">
+                <table style="width: 100%">
+                    <tr>
+                        <th></th>
+                        <th>NearNeighour</th>
+                        <th>Bi-Linear</th>
+                        <th>Bi-Cubic</th>
+                        <th>Reconstruct</th>
+                        <th>Difference</th>
+                    </tr>
+                    
+                    {% for line in results %}
+                        <tr>
+                        {% for metricVal in line %}
+                            <td>{{ metricVal }}</td>
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    
+                </table>
+
+            </div>
         </div>
 
     </div>

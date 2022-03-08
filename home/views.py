@@ -157,11 +157,14 @@ def downloadZip(request):
         shutil.copyfileobj(response.raw, target)
 
     zipPath = "./"+filename
+
+    original = ""
+    upscaled = ""
     
     # extract the images from the zip
     with zipfile.ZipFile(zipPath, 'r') as zip_ref:
         zippedFiles = zip_ref.namelist()
-        if len(zippedFiles)==1:
+        if len(zippedFiles)==2:
             
             # Create directory if it doesn't exist
             if not os.path.isdir("./images/upscaledImages"):
@@ -169,28 +172,49 @@ def downloadZip(request):
 
             zip_ref.extractall("./images/upscaledImages")
 
-    # Get the newly upscaled image
-    if os.path.exists("./images"):
-        for file_in_main in os.listdir("./images"):
-            if os.path.isfile("./images/"+file_in_main): # item is a file
-                try:
-                    original = "/images/" + file_in_main
-                except OSError as e:
-                    print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+            # Get the newly upscaled image
+            if os.path.exists("./images"):
+                for file_in_main in os.listdir("./images"):
+                    if os.path.isfile("./images/"+file_in_main): # item is a file
+                        try:
+                            original = "/images/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
 
-    if os.path.exists("./images/upscaledImages"):
-        for file_in_main in os.listdir("./images/upscaledImages"):
-            if os.path.isfile("./images/upscaledImages/"+file_in_main): # item is a file
-                try:
-                    upscaled = "/images/upscaledImages/" + file_in_main
-                    print(upscaled)
-                except OSError as e:
-                    print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
-    
-    context['original'] = original
-    context['upscaled'] = upscaled
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main): # item is a file
+                        try:
+                            upscaled = "/images/upscaledImages/" + file_in_main
+                            print(upscaled)
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
             
-    return render(request,'download.html', context)
+            lines = []
+            with open("./images/upscaledImages/comparisonResult.txt") as f:
+                count = 0
+                for line in f:
+                    count += 1
+                    if count==1:
+                        lines.append('MSE,'+line)
+                    elif count==2:
+                        lines.append('PSNR,'+line)
+                    elif count==3:
+                        lines.append('SSIM,'+line)
+            
+            results = []
+            for line in lines:
+                temp = line.split(",")
+                results.append(temp)
+
+            print(results)
+            context['results'] = results
+            context['original'] = original
+            context['upscaled'] = upscaled
+                    
+            return render(request,'download.html', context)
+        else:
+            return render(request,'download.html')
 
 
 # Send back the upscaled zip folder to user
@@ -209,7 +233,6 @@ def sendBackZip(request):
 
 # redirect the user back to the upload page while clearing folders
 def backhome(request):
-    cleanDirectories()
     return redirect('upload')
 
 
