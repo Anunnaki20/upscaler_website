@@ -1,48 +1,6 @@
 
 
-.image_size {
-
-    max-height: 100%;
-    max-width: 100%;
-}
-
-.image-area {
-    border: 2px dashed rgba(255, 255, 255, 0.7);
-    padding: 1rem;
-    position: relative;
-    height: 23rem;
-    width: 23rem;
-}
-
-.image-area img {
-    /* z-index: 1; */
-    /* position: absolute; */
-    max-width: 100%;
-    max-height: 100%;
-    margin: 0;
-    /* overflow: hidden; */
-}
-
-
 #image-compare {
     width: 75vh;
     height: 75vh;
-}
-
-
-* {box-sizing: border-box;}
-
-.img-magnifier-container {
-  position: absolute;
-}
-
-.img-magnifier-glass {
-    position: absolute;
-    border: 3px solid #000;
-    border-radius: 50%;
-    cursor: none;
-    
-    /*Set the size of the magnifier glass:*/
-    width: 100px;
-    height: 100px;
 }

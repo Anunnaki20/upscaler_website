@@ -26,21 +26,6 @@
         </div>
     </div>
 
-
-    <!-- Mangifing glasses -->
-    <!-- <div class="row">
-        <div class="col img-responsive" id="test">
-            <p>Original</p>
-            <div class="image-area mx-auto showcase-img"><img id="myimage" src="{% static 'images/000087.png' %}"></div>
-        </div>
-        <div class="col img-responsive" id="test">
-            <p>Upscaled</p>
-            <div class="image-area mx-auto showcase-img"><img id="myimage2" src="{% static 'images/000087_x4_sisr.png' %}"></div>
-        </div>
-    </div> -->
-
-
-
     <!-- Image comparison slider -->
     <div class="container d-flex justify-content-center">
         <div class="row mx-auto">
@@ -52,25 +37,7 @@
             </div>
         </div>
 
-
-    <!-- <div class="container d-flex justify-content-center">
-        <div class="row">
-            <div class="column">
-                <div class="img-comp-container">
-                    <div class="img-comp-img">
-                        <img src="{% static 'images/000087.png' %}" width="800" height="800">
-                    </div>
-                    <div class="img-comp-img img-comp-overlay">
-                        <img src="{% static 'images/000087_x4_sisr.png' %}" width="800" height="800">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> -->
-
-
     <!-- Buttons -->
-    <!-- <div class="container justify-content-center align-content-center"> -->
         <div class="row">
             <div class="column justify-content-center">
             <a href="{% url 'sendBackZip' %}" class="btn btn-lg btn-primary">Download</a>
@@ -80,32 +47,6 @@
 
     </div>
         
-        
-
-    <!-- </div> -->
-
-
-    
-    <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-    <script type="text/javascript" src="{% static 'js/ddpowerzoomer.js' %}"></script>
-
-    <script type="text/javascript">
-
-        jQuery(document).ready(function($){ //fire on DOM ready
-            $('#myimage, #myimage2').addpowerzoom({
-            defaultpower: 2,
-            powerrange: [2,5],
-            largeimage: null,
-            magnifiersize: [150,150] //<--no comma following last option!
-            })
-        })
-
-    </script> -->
-
-    <!-- <script type="text/javascript" src="{% static 'js/image_slider.js' %}"></script>
-    <script>
-        initComparisons();
-    </script> -->
 
     <script type="text/javascript" src="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.js"></script>
     <script type="text/javascript">
