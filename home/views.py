@@ -1,5 +1,6 @@
 import cgi
 import pathlib
+from turtle import up
 from django.shortcuts import render
 from django.http import HttpResponse,  FileResponse
 from django.contrib.auth.models import User
@@ -167,8 +168,29 @@ def downloadZip(request):
                 os.mkdir("./images/upscaledImages")
 
             zip_ref.extractall("./images/upscaledImages")
+
+    # Get the newly upscaled image
+    if os.path.exists("./images"):
+        for file_in_main in os.listdir("./images"):
+            if os.path.isfile("./images/"+file_in_main): # item is a file
+                try:
+                    original = "/images/" + file_in_main
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+
+    if os.path.exists("./images/upscaledImages"):
+        for file_in_main in os.listdir("./images/upscaledImages"):
+            if os.path.isfile("./images/upscaledImages/"+file_in_main): # item is a file
+                try:
+                    upscaled = "/images/upscaledImages/" + file_in_main
+                    print(upscaled)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+    
+    context['original'] = original
+    context['upscaled'] = upscaled
             
-    return render(request,'download.html')
+    return render(request,'download.html', context)
 
 
 # Send back the upscaled zip folder to user
@@ -184,7 +206,10 @@ def sendBackZip(request):
         cleanDirectories()
         return response
 
-
+# redirect the user back to the upload page while clearing folders
+def backhome(request):
+    cleanDirectories()
+    return render(request,'upload.html')
 
 # Upload image to the website
 def upload(request):

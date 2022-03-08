@@ -12,9 +12,7 @@
     <!-- Custom styles for download -->
     <link href="{% static 'styles/download.css' %}" rel="stylesheet">
 
-    <!-- Styling for the slider -->
-    <link href="{% static 'styles/image_slider.css' %}" rel="stylesheet">
-
+    <!-- Styles for slider -->
     <link href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css" rel="stylesheet">
 </head>
      
@@ -48,8 +46,8 @@
         <div class="row mx-auto">
             <div class="column">
                 <div id="image-compare">
-                    <img src="{% static 'images/000087.png' %}">
-                    <img src="{% static 'images/000087_x4_sisr.png' %}">
+                    <img src="{{original}}">
+                    <img src="{{upscaled}}">
                 </div>
             </div>
         </div>
@@ -76,7 +74,7 @@
         <div class="row">
             <div class="column justify-content-center">
             <a href="{% url 'sendBackZip' %}" class="btn btn-lg btn-primary">Download</a>
-            <a href="{% url 'upload' %}" class="btn btn-lg btn-primary">Main Page</a>
+            <a href="{% url 'backhome' %}" class="btn btn-lg btn-primary">Main Page</a>
         </div>
         </div>
 
