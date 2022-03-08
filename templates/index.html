@@ -20,6 +20,7 @@
     <body class="d-flex h-100 text-center text-black bg-white">
     
         <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+            
             <header class="mb-auto">
                     <h3 class="float-md-start mb-0">SISR Upscaling</h3>
                     <nav class="nav nav-masthead justify-content-center float-md-end">
@@ -36,6 +37,18 @@
 
                     </nav>
             </header>
+
+
+            {% for message in messages %}
+            <div class="container-fluid p-0">
+            <div class="alert {{ message.tags }} alert-dismissible" role="alert" >
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="True">&times;</span>
+                </button>
+                {{ message }}
+            </div>
+            </div>
+            {% endfor %}
 
 
             {% block content %}

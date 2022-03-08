@@ -170,6 +170,8 @@ def downloadZip(request):
             zip_ref.extractall("./images/upscaledImages")
 
     # Get the newly upscaled image
+    upscaled = None
+    original = None
     if os.path.exists("./images"):
         for file_in_main in os.listdir("./images"):
             if os.path.isfile("./images/"+file_in_main): # item is a file
@@ -183,7 +185,6 @@ def downloadZip(request):
             if os.path.isfile("./images/upscaledImages/"+file_in_main): # item is a file
                 try:
                     upscaled = "/images/upscaledImages/" + file_in_main
-                    print(upscaled)
                 except OSError as e:
                     print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
     
