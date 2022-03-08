@@ -11,54 +11,85 @@
   
     <!-- Custom styles for download -->
     <link href="{% static 'styles/download.css' %}" rel="stylesheet">
+
+    <!-- Styling for the slider -->
+    <link href="{% static 'styles/image_slider.css' %}" rel="stylesheet">
+
+    <link href="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.css" rel="stylesheet">
 </head>
      
 
 <body class="d-flex h-100 text-center text-white">
      
     <!-- Title  -->
-    <div class="container justify-content-center align-content-center py-3">
+    <div class="container d-flex justify-content-center align-content-center py-3">
         <div class="row pt-5 justify-content-center align-content-center">
             <div class="h1">Uploaded images have been upscaled</div>
         </div>
     </div>
 
 
+    <!-- Mangifing glasses -->
+    <!-- <div class="row">
+        <div class="col img-responsive" id="test">
+            <p>Original</p>
+            <div class="image-area mx-auto showcase-img"><img id="myimage" src="{% static 'images/000087.png' %}"></div>
+        </div>
+        <div class="col img-responsive" id="test">
+            <p>Upscaled</p>
+            <div class="image-area mx-auto showcase-img"><img id="myimage2" src="{% static 'images/000087_x4_sisr.png' %}"></div>
+        </div>
+    </div> -->
 
-    <!-- <div class="container"> -->
+
+
+    <!-- Image comparison slider -->
+    <div class="container d-flex justify-content-center">
+        <div class="row mx-auto">
+            <div class="column">
+                <div id="image-compare">
+                    <img src="{% static 'images/000087.png' %}">
+                    <img src="{% static 'images/000087_x4_sisr.png' %}">
+                </div>
+            </div>
+        </div>
+
+
+    <!-- <div class="container d-flex justify-content-center">
         <div class="row">
-            <div class="col img-responsive" id="test">
-                <p>Original</p>
-                <div class="image-area mx-auto showcase-img"><img id="myimage" src="{% static 'images/000087.png' %}"></div>
-            </div>
-            <div class="col img-responsive" id="test">
-                <p>Upscaled</p>
-                <div class="image-area mx-auto showcase-img"><img id="myimage2" src="{% static 'images/000087_x4_sisr.png' %}"></div>
+            <div class="column">
+                <div class="img-comp-container">
+                    <div class="img-comp-img">
+                        <img src="{% static 'images/000087.png' %}" width="800" height="800">
+                    </div>
+                    <div class="img-comp-img img-comp-overlay">
+                        <img src="{% static 'images/000087_x4_sisr.png' %}" width="800" height="800">
+                    </div>
+                </div>
             </div>
         </div>
-    <!-- </div> -->
+    </div> -->
 
-    <div class="container justify-content-center align-content-center">
-        <div class="row justify-content-center align-content-center py-5">
+
+    <!-- Buttons -->
+    <!-- <div class="container justify-content-center align-content-center"> -->
+        <div class="row">
+            <div class="column justify-content-center">
             <a href="{% url 'sendBackZip' %}" class="btn btn-lg btn-primary">Download</a>
-        </div>
-        <div class="row justify-content-center align-content-center py-5">
             <a href="{% url 'upload' %}" class="btn btn-lg btn-primary">Main Page</a>
         </div>
+        </div>
+
     </div>
+        
+        
+
+    <!-- </div> -->
 
 
     
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-    <script type="text/javascript" src="{% static 'js/ddpowerzoomer.js' %}">
-
-    /***********************************************
-    * Image Power Zoomer- (c) Dynamic Drive DHTML code library (www.dynamicdrive.com)
-    * Please keep this notice intact
-    * Visit Dynamic Drive at http://www.dynamicdrive.com/ for this script and 100s more
-    ***********************************************/
-
-    </script>
+    <!-- <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/ddpowerzoomer.js' %}"></script>
 
     <script type="text/javascript">
 
@@ -71,18 +102,41 @@
             })
         })
 
-    </script>
-
-
-    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <script type="text/javascript" src="{% static 'js/download.js' %}"></script>
-    <script>
-        /* Execute the magnify function: */
-        magnify("myimage", 3);
-        magnify("myimage2", 3);
-        /* Specify the id of the image, and the strength of the magnifier glass: */
     </script> -->
 
+    <!-- <script type="text/javascript" src="{% static 'js/image_slider.js' %}"></script>
+    <script>
+        initComparisons();
+    </script> -->
+
+    <script type="text/javascript" src="https://unpkg.com/image-compare-viewer/dist/image-compare-viewer.min.js"></script>
+    <script type="text/javascript">
+
+        const options = {
+
+            controlColor: "#73c781",
+            controlShadow: false,
+            addCircle: true,
+            addCircleBlur: true, // default
+
+            // Labels
+            showLabels: true,
+            labelOptions: {
+                before: 'Before',
+                after: 'After',
+                onHover: true
+            },
+
+            smoothing: false,
+
+            fluidMode: true
+
+        };
+
+        const element = document.getElementById("image-compare");
+        const viewer = new ImageCompare(element, options).mount();
+
+    </script>
 
 
 </body>

@@ -1,7 +1,5 @@
 import cgi
-import io
 import pathlib
-import time
 from django.shortcuts import render
 from django.http import HttpResponse,  FileResponse
 from django.contrib.auth.models import User
@@ -24,14 +22,14 @@ import requests
 import base64
 from PIL import Image
 import numpy
-import cv2
 import numpy as np
 import zipfile # used for zipping
 import os # used for get the files and checking what type
 import shutil # used for zipping
-import mimetypes # used for downloading link
 from pathlib import Path # Finds name of an image file
-# Create your views here.
+
+# import aiohttp, asyncio
+
 
 
 # ---------------------------Login Stuff Below-------------------------------------
@@ -140,33 +138,33 @@ def downloadZip(request):
 
     """
 
-    directory = "./"
-    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    # directory = "./"
+    # response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
 
     
-    params = cgi.parse_header(
-    response.headers.get('Content-Disposition', ''))[-1]
-    if 'filename' not in params:
-        raise ValueError('Could not find a filename')
+    # params = cgi.parse_header(
+    # response.headers.get('Content-Disposition', ''))[-1]
+    # if 'filename' not in params:
+    #     raise ValueError('Could not find a filename')
 
-    filename = os.path.basename(params['filename'])
-    abs_path = os.path.join(directory, filename)
-    with open(abs_path, 'wb') as target:
-        response.raw.decode_content = True
-        shutil.copyfileobj(response.raw, target)
+    # filename = os.path.basename(params['filename'])
+    # abs_path = os.path.join(directory, filename)
+    # with open(abs_path, 'wb') as target:
+    #     response.raw.decode_content = True
+    #     shutil.copyfileobj(response.raw, target)
 
-    zipPath = "./"+filename
+    # zipPath = "./"+filename
     
-    # extract the images from the zip
-    with zipfile.ZipFile(zipPath, 'r') as zip_ref:
-        zippedFiles = zip_ref.namelist()
-        if len(zippedFiles)==1:
+    # # extract the images from the zip
+    # with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+    #     zippedFiles = zip_ref.namelist()
+    #     if len(zippedFiles)==1:
             
-            # Create directory if it doesn't exist
-            if not os.path.isdir("./images/upscaledImages"):
-                os.mkdir("./images/upscaledImages")
+    #         # Create directory if it doesn't exist
+    #         if not os.path.isdir("./images/upscaledImages"):
+    #             os.mkdir("./images/upscaledImages")
 
-            zip_ref.extractall("./images/upscaledImages")
+    #         zip_ref.extractall("./images/upscaledImages")
             
     return render(request,'download.html')
 

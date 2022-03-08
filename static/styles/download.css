@@ -24,6 +24,12 @@
 }
 
 
+#image-compare {
+    width: 75vh;
+    height: 75vh;
+}
+
+
 * {box-sizing: border-box;}
 
 .img-magnifier-container {
