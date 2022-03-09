@@ -160,6 +160,9 @@ def downloadZip(request):
 
     original = ""
     upscaled = ""
+    bc = ""
+    bl = ""
+    nn = ""
     
     # extract the images from the zip
     with zipfile.ZipFile(zipPath, 'r') as zip_ref:
@@ -197,7 +200,7 @@ def downloadZip(request):
         print(results)
         context['results'] = results
 
-        if len(zippedFiles)==2:
+        if len(zippedFiles)==5:
             
             # # Create directory if it doesn't exist
             # if not os.path.isdir("./images/upscaledImages"):
@@ -208,24 +211,53 @@ def downloadZip(request):
             # Get the original image
             if os.path.exists("./images"):
                 for file_in_main in os.listdir("./images"):
-                    if os.path.isfile("./images/"+file_in_main) and pathlib.Path(file_in_main).suffix!=".txt": # item is an image file
+                    if os.path.isfile("./images/"+file_in_main): # item is an image file
                         try:
                             original = "/images/" + file_in_main
                         except OSError as e:
                             print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
 
-            # Get the newly upscaled image
+            # Get the newly upscaled bc image
             if os.path.exists("./images/upscaledImages"):
                 for file_in_main in os.listdir("./images/upscaledImages"):
-                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and pathlib.Path(file_in_main).suffix!=".txt": # item is an image file
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "bc" in file_in_main: # item is an image file
+                        try:
+                            bc = "/images/upscaledImages/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+
+            # Get the newly upscaled bl image
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "bl" in file_in_main: # item is an image file
+                        try:
+                            bl = "/images/upscaledImages/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+
+            # Get the newly upscaled nn image
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "nn" in file_in_main: # item is an image file
+                        try:
+                            nn = "/images/upscaledImages/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+
+            # Get the newly upscaled nn image
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "sisr" in file_in_main: # item is an image file
                         try:
                             upscaled = "/images/upscaledImages/" + file_in_main
-                            print(upscaled)
                         except OSError as e:
                             print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
             
             context['original'] = original
             context['upscaled'] = upscaled
+            context['bl'] = bl
+            context['bc'] = bc
+            context['nn'] = nn
                     
         return render(request,'download.html', context)
 
