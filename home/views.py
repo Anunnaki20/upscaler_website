@@ -222,14 +222,8 @@ def downloadZip(request):
         print(results)
         context['results'] = results
 
-        if len(zippedFiles)==5:
+        if len(zippedFiles) <= 5:
             
-            # # Create directory if it doesn't exist
-            # if not os.path.isdir("./images/upscaledImages"):
-            #     os.mkdir("./images/upscaledImages")
-
-            # zip_ref.extractall("./images/upscaledImages")
-
             # Get the original image
             if os.path.exists("./images"):
                 for file_in_main in os.listdir("./images"):
@@ -281,7 +275,7 @@ def downloadZip(request):
             context['bc'] = bc
             context['nn'] = nn
                     
-        return render(request,'download.html', context)
+    return render(request,'download.html', context)
 
 
 # Send back the upscaled zip folder to user

@@ -20,26 +20,104 @@
 <body class="d-flex h-100 text-center text-white">
      
     <!-- Title  -->
-    <div class="container d-flex justify-content-center align-content-center py-3">
+    <div class="container d-flex justify-content-center align-content-center">
         <div class="row pt-5 justify-content-center align-content-center">
             <div class="h1">Uploaded images have been upscaled</div>
         </div>
     </div>
 
-    <!-- Image comparison slider -->
+    <div class="col-sm-10">
+        <div class="btn-group btn-group-toggle justify-content-center mx-auto" data-toggle="buttons">
+            {% if original %}
+            <div class="h5 p-1">Select After Image: </div>
+            {% endif %}
+
+            {% if original %}
+            <label class="btn btn-sm btn-primary btn-simple active">
+                <input type="radio" class="d-none d-sm-none" name="options" id="sisr_btn" checked>
+                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">SISR</span>
+            </label>
+            {% endif %}
+
+            {% if bc %}
+            <label class="btn btn-sm btn-primary btn-simple">
+                <input type="radio" class="d-none d-sm-none" name="options" id="bicubic_btn">
+                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Bi-Cubic</span>
+            </label>
+            {% endif %}
+
+            {% if bl %}
+            <label class="btn btn-sm btn-primary btn-simple">
+                <input type="radio" class="d-none" name="options" id="bilinear_btn">
+                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Bi-linear</span>
+            </label>
+            {% endif %}
+
+            {% if nn %}
+            <label class="btn btn-sm btn-primary btn-simple">
+                <input type="radio" class="d-none" name="options" id="nn_btn">
+                <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Nearest Neighour</span>
+            </label>
+            {% endif %}
+        </div>
+      </div>
+
     <div class="container d-flex justify-content-center">
-        <div class="row mx-auto">
+
+        <!-- Image comparison slider -->
+
+        <!-- SISR -->
+        {% if original %}
+        <div id="sisr" class="row mx-auto">
             <div class="column">
-                {% if original %}
                 <div id="image-compare">
                     <img src="{{original}}">
                     <img src="{{upscaled}}">
                 </div>
-                {% else %}
-                    <h3>Image comparison only available for a single image</h3>
-                {% endif %}  
             </div>
         </div>
+        {% else %}
+            <h3>Image comparison only available for a single image</h3>
+        {% endif %}
+        
+
+        {% if bc %}
+        <!-- BI-Cubic -->
+        <div id="bicubic" class="row mx-auto" style="display: none;">
+            <div class="column">
+                <div id="image-compare">
+                    <img src="{{original}}">
+                    <img src="{{bc}}">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if bl %}
+        <!-- BI-linear -->
+        <div id="bilinear" class="row mx-auto" style="display: none;">
+            <div class="column">
+                <div id="image-compare">
+                    <img src="{{original}}">
+                    <img src="{{bl}}">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if nn %}
+        <!-- NN -->
+        <div id="nn" class="row mx-auto" style="display: none;">
+            <div class="column">
+                <div id="image-compare">
+                    <img src="{{original}}">
+                    <img src="{{nn}}">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+
 
     <!-- Buttons -->
         <div class="row">
@@ -47,7 +125,7 @@
             <a href="{% url 'sendBackZip' %}" class="btn btn-lg btn-primary">Download</a>
             <a href="{% url 'backhome' %}" class="btn btn-lg btn-primary">Main Page</a>
             </div>
-            <div class="column justify-content-center">
+            <div class="column justify-content-center py-5">
                 <table class="table table-hover table-dark">
                     {% if results %}
                         <tr>
@@ -80,7 +158,6 @@
     <script type="text/javascript">
 
         const options = {
-
             controlColor: "#73c781",
             controlShadow: false,
             addCircle: true,
@@ -95,13 +172,50 @@
             },
 
             smoothing: false,
-
             fluidMode: true
-
         };
 
-        const element = document.getElementById("image-compare");
-        const viewer = new ImageCompare(element, options).mount();
+        // Set the viewers
+        let viewers = document.querySelectorAll("#image-compare");
+        viewers.forEach((element) => {
+            let view = new ImageCompare(element, options).mount();
+        });
+
+        const sisr = document.getElementById("sisr");
+        const bicubic = document.getElementById("bicubic");
+        const bilinear = document.getElementById("bilinear");
+        const nn = document.getElementById("nn");
+
+        document.getElementById("sisr_btn").onclick = function () { 
+            sisr.style.display = "block";
+            bicubic.style.display = "none";
+            bilinear.style.display = "none";
+            nn.style.display = "none";
+        };
+
+         document.getElementById("bicubic_btn").onclick = function () { 
+            sisr.style.display = "none";
+            bicubic.style.display = "block";
+            bilinear.style.display = "none";
+            nn.style.display = "none";
+        };
+
+        document.getElementById("bilinear_btn").onclick = function () { 
+            sisr.style.display = "none";
+            bicubic.style.display = "none";
+            bilinear.style.display = "block";
+            nn.style.display = "none";
+        };
+
+
+        document.getElementById("nn_btn").onclick = function () { 
+            sisr.style.display = "none";
+            bicubic.style.display = "none";
+            bilinear.style.display = "none";
+            nn.style.display = "block";
+         };
+
+
 
     </script>
 
