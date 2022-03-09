@@ -1,3 +1,4 @@
+from ast import excepthandler
 import cgi
 import pathlib
 from turtle import up
@@ -113,7 +114,10 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
 
     baseName = Path(image).stem
     payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
-    req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload)
+    try:
+        req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload, timeout=10)
+    except:
+        return
 
     return HttpResponse(req.text)
 
@@ -123,7 +127,11 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     fsock = open(zipfile, 'rb')
 
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
-    req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
+
+    try:
+        req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload, timeout=10)
+    except:
+        return
 
     return render(request, 'upload.html')
 
@@ -142,7 +150,21 @@ def downloadZip(request):
     context = {}
 
     directory = "./"
-    response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+
+    # If we are unable to connect to downloadZip redirect to upload
+    try:
+        response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    except:
+        messages.error(request, "Unable to access upscaler at the moment. Try again later")
+        cleanDirectories()
+        return redirect('upload')
+
+    # IF the backend sends an error redirect to upload
+    if response.status_code > 300:
+        messages.error(request, "Unable to access upscaler at the moment. Try again later")
+        cleanDirectories()
+        return redirect('upload')
+
 
     
     params = cgi.parse_header(
@@ -261,15 +283,13 @@ def downloadZip(request):
                     
         return render(request,'download.html', context)
 
-        # else:
-        #     return render(request,'download.html')
-
 
 # Send back the upscaled zip folder to user
 def sendBackZip(request):
     file_server = pathlib.Path('./upscaledZip.zip')
     if not file_server.exists():
         messages.error(request, 'file not found.')
+        return redirect('upload')
     else:
         file_to_download = open(str(file_server), 'rb')
         os.remove("./upscaledZip.zip")
@@ -281,6 +301,12 @@ def sendBackZip(request):
 
 # redirect the user back to the upload page while clearing folders
 def backhome(request):
+    try:
+        os.remove("./upscaledZip.zip")
+    except:
+        cleanDirectories()
+        return redirect('upload')
+    cleanDirectories()
     return redirect('upload')
 
 
@@ -311,12 +337,12 @@ def upload(request):
                     modelName = model.modelfilename
             qualityMeasure = request.POST.get('quality')
             print("Scale:", scaleAmount, ", Model:", modelDesc, ", ModelFileName:", modelName, ", Quality Measure?:", qualityMeasure)
-            # return render(request, 'info.html')
 
         # If it is then we will want to run a different function to handle the zip
         #### Get the extension of the file ####
         
         extension = upload.name[1:len(upload.name)].split(".", 1)[1]
+        proper_extenstions = ["png", "jpeg", "bmp", "tiff"]
         print(extension)
 
         # Check if the uploaded file is .zip
@@ -387,10 +413,9 @@ def upload(request):
             # Send the zip file to the backend server #
             ######################################################
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-            cleanDirectories()
             return redirect('downloadZip')
 
-        else: # the uploaded file was a single image
+        elif (extension in proper_extenstions): # the uploaded file was a single image
 
             # Check if the uploaded image is valid size/resolution
             if check_image_size(request, upload):
@@ -402,6 +427,14 @@ def upload(request):
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 return redirect('downloadZip')
+            else:
+
+                messages.warning(request,"Image does not match the requirements")
+                return redirect('upload')
+
+        else: # uploaded image is not the correct file type
+            messages.warning(request,"File type does not match the requirements")
+            return redirect('upload')
 
     return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
 
