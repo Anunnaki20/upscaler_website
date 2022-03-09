@@ -1,7 +1,7 @@
+from ast import excepthandler
 import cgi
-import io
 import pathlib
-import time
+from turtle import up
 from django.shortcuts import render
 from django.http import HttpResponse,  FileResponse
 from django.contrib.auth.models import User
@@ -24,14 +24,14 @@ import requests
 import base64
 from PIL import Image
 import numpy
-import cv2
 import numpy as np
 import zipfile # used for zipping
 import os # used for get the files and checking what type
 import shutil # used for zipping
-import mimetypes # used for downloading link
 from pathlib import Path # Finds name of an image file
-# Create your views here.
+
+# import aiohttp, asyncio
+
 
 
 # ---------------------------Login Stuff Below-------------------------------------
@@ -100,14 +100,12 @@ def logoutUser(request):
 # -------------------------------------------------------------------------------
 
 
-# ------------------------Download, sending and zipinn files---------------------------
+# ------------------------Download, sending and ziping files---------------------------
 # Sending image to the SISR website
 def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     #### Get the extension of the file ####
     extension = image[1:len(image)].split(".", 1)[1]
     print(extension)
-    content_type = 'image/' + extension
-    headers = {'content-type': content_type}
 
     with open(image,'rb') as binary_file:
         binary_data = binary_file.read()
@@ -116,20 +114,24 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
 
     baseName = Path(image).stem
     payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
-    req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload)
+    try:
+        req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload, timeout=10)
+    except:
+        return
 
     return HttpResponse(req.text)
 
 
 # Initially sending the received zip folder to the SISR website
 def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
-    content_type = 'application/zip'
-    headers = {'content-type': content_type}
-
     fsock = open(zipfile, 'rb')
 
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
-    req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload)
+
+    try:
+        req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload, timeout=10)
+    except:
+        return
 
     return render(request, 'upload.html')
 
@@ -145,22 +147,112 @@ def downloadZip(request):
 
     """
 
-    # directory = "./"
-    # response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    context = {}
+
+    directory = "./"
+
+    # If we are unable to connect to downloadZip redirect to upload
+    try:
+        response = requests.post('http://host.docker.internal:5000/downloadZip', stream=True)
+    except:
+        messages.error(request, "Unable to access upscaler at the moment. Try again later")
+        cleanDirectories()
+        return redirect('upload')
+
+    # IF the backend sends an error redirect to upload
+    if response.status_code > 300:
+        messages.error(request, "Unable to access upscaler at the moment. Try again later")
+        cleanDirectories()
+        return redirect('upload')
+
 
     
-    # params = cgi.parse_header(
-    # response.headers.get('Content-Disposition', ''))[-1]
-    # if 'filename' not in params:
-    #     raise ValueError('Could not find a filename')
+    params = cgi.parse_header(
+    response.headers.get('Content-Disposition', ''))[-1]
+    if 'filename' not in params:
+        raise ValueError('Could not find a filename')
 
-    # filename = os.path.basename(params['filename'])
-    # abs_path = os.path.join(directory, filename)
-    # with open(abs_path, 'wb') as target:
-    #     response.raw.decode_content = True
-    #     shutil.copyfileobj(response.raw, target)
+    filename = os.path.basename(params['filename'])
+    abs_path = os.path.join(directory, filename)
+    with open(abs_path, 'wb') as target:
+        response.raw.decode_content = True
+        shutil.copyfileobj(response.raw, target)
 
-    return render(request,'download.html')
+    zipPath = "./"+filename
+
+    original = ""
+    upscaled = ""
+    
+    # extract the images from the zip
+    with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+        zippedFiles = zip_ref.namelist()
+
+        # Create directory if it doesn't exist
+        if not os.path.isdir("./images/upscaledImages"):
+            os.mkdir("./images/upscaledImages")
+
+        zip_ref.extractall("./images/upscaledImages")
+
+        filesize = os.path.getsize("./images/upscaledImages/comparisonResult.txt")
+
+        results = []
+        print
+        # Result is only populated if it's not empty
+        if(filesize!=0):
+            lines = []
+            with open("./images/upscaledImages/comparisonResult.txt") as f:
+                count = 0
+                for line in f:
+                    count += 1
+                    if count==1:
+                        lines.append('MSE,'+line)
+                    elif count==2:
+                        lines.append('PSNR,'+line)
+                    elif count==3:
+                        lines.append('SSIM,'+line)
+            
+            for line in lines:
+                temp = line.split(",")
+                results.append(temp)
+
+        print("\n\n\n")
+        print(results)
+        context['results'] = results
+
+        if len(zippedFiles)==2:
+            
+            # # Create directory if it doesn't exist
+            # if not os.path.isdir("./images/upscaledImages"):
+            #     os.mkdir("./images/upscaledImages")
+
+            # zip_ref.extractall("./images/upscaledImages")
+
+            # Get the original image
+            if os.path.exists("./images"):
+                for file_in_main in os.listdir("./images"):
+                    if os.path.isfile("./images/"+file_in_main) and pathlib.Path(file_in_main).suffix!=".txt": # item is an image file
+                        try:
+                            original = "/images/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+
+            # Get the newly upscaled image
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and pathlib.Path(file_in_main).suffix!=".txt": # item is an image file
+                        try:
+                            upscaled = "/images/upscaledImages/" + file_in_main
+                            print(upscaled)
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+            
+            context['original'] = original
+            context['upscaled'] = upscaled
+                    
+        return render(request,'download.html', context)
+
+        # else:
+        #     return render(request,'download.html')
 
 
 # Send back the upscaled zip folder to user
@@ -173,7 +265,19 @@ def sendBackZip(request):
         os.remove("./upscaledZip.zip")
         response = FileResponse(file_to_download, content_type='application/force-download')
         response['Content-Disposition'] = 'inline; filename="upscaledZip.zip"'
+        cleanDirectories()
         return response
+
+
+# redirect the user back to the upload page while clearing folders
+def backhome(request):
+    try:
+        os.remove("./upscaledZip.zip")
+    except:
+        cleanDirectories()
+        return redirect('upload')
+    cleanDirectories()
+    return redirect('upload')
 
 
 # Upload image to the website
@@ -203,7 +307,6 @@ def upload(request):
                     modelName = model.modelfilename
             qualityMeasure = request.POST.get('quality')
             print("Scale:", scaleAmount, ", Model:", modelDesc, ", ModelFileName:", modelName, ", Quality Measure?:", qualityMeasure)
-            # return render(request, 'info.html')
 
         # If it is then we will want to run a different function to handle the zip
         #### Get the extension of the file ####
@@ -220,8 +323,9 @@ def upload(request):
             file_url = fss.url(file) # Get the location of the file with just uploaded and saved
 
             ######################################################
-            # unzip the file and check image size for each image #
+            # unzip the file and check image size and type for each image #
             ######################################################
+
             # extract the images from the zip
             with zipfile.ZipFile("."+file_url, 'r') as zip_ref:
                 zip_ref.extractall("./images/extractedImages")
@@ -269,7 +373,7 @@ def upload(request):
                     continue # do not do anything with it
 
             ######################################################
-            # Zip all the images that meet the size requirement #
+            # Zip all the images that meet the size and type requirement #
             ######################################################
             shutil.make_archive("./images/validZip", 'zip', "./images/extractedImages")
             file_url = "/images/validZip.zip"
@@ -278,7 +382,6 @@ def upload(request):
             # Send the zip file to the backend server #
             ######################################################
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-            cleanDirectories(request)
             return redirect('downloadZip')
 
         else: # the uploaded file was a single image
@@ -292,24 +395,20 @@ def upload(request):
  
                 ##### Send the image to the backend server #####
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
-                cleanDirectories(request)
-                return render(request, 'upload.html', {'file_url': file_url, 'model_list': model_list, 'model_list_js':model_list_js})
+                return redirect('downloadZip')
+            else:
+                messages.warning("Image does not match the requirments")
+                return redirect('upload')
+
     return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
+
 
 # Sending model to the SISR website
 def sendModel(request, modelfile, modelDesc):
-    # with open(modelfile,'rb') as binary_file:
-    #     binary_data = binary_file.read()
-    #     base64_encoded_data = base64.b64encode(binary_data)
-    #     model_message = base64_encoded_data.decode('utf-8')
-
-    # baseName = Path(model_message).stem
-    # print(baseName + " :basename")
-    # print(Path(model_message) + " :other test")
     payload = {'modelDesc': modelDesc, 'filename': modelfile.name}
     req = requests.post('http://host.docker.internal:5000/uploadModel', data=modelfile, params=payload)
-
     return HttpResponse(req.text)
+
 
 # Upload model to the website
 def uploadModel(request):
@@ -337,45 +436,49 @@ def uploadModel(request):
     return render(request, 'model_upload.html', {'form': form})
 
 
-# Testing for making the selection option dynamic
-# def get_models(request):
-#     model_list = ModelInfo.objects.all()
-
-#     json_serializer = serializers.get_serializer("json")()
-#     model_list_js = json_serializer.serialize(model_list, ensure_ascii=False)
-#     return render(request, 'testingDynamic.html',
-#         {'model_list': model_list, 'model_list_js':model_list_js})
-
-
-
 # Remove/delete the files in the images and extractedImages folders
-def cleanDirectories(request):
+def cleanDirectories():
     ####################################
     # Delete the items in subdirectory #
     ####################################
-    for file_in_sub in os.listdir("./images/extractedImages"):
-        if os.path.isdir("./images/extractedImages/"+file_in_sub):
-            try:
-                shutil.rmtree("./images/extractedImages/"+file_in_sub)
-            except OSError as e:
-                print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
-        else:
-            try:
-                os.remove("./images/extractedImages/"+file_in_sub)
-            except OSError as e:
-                print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
+    if os.path.exists("./images/extractedImages"):
+        for file_in_sub in os.listdir("./images/extractedImages"):
+            if os.path.isdir("./images/extractedImages/"+file_in_sub):
+                try:
+                    shutil.rmtree("./images/extractedImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
+            else:
+                try:
+                    os.remove("./images/extractedImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/extractedImages/"+file_in_sub, e.strerror))
 
     ########################################
     # Delete the items in images directory #
     ########################################
-    for file_in_main in os.listdir("./images"):
-        if os.path.isdir("./images/"+file_in_main): # item is a directory
-            continue # do not delete
-        elif os.path.isfile("./images/"+file_in_main): # item is a file
-            try:
-                os.remove("./images/"+file_in_main)
-            except OSError as e:
-                print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+    if os.path.exists("./images"):
+        for file_in_main in os.listdir("./images"):
+            if os.path.isdir("./images/"+file_in_main): # item is a directory
+                continue # do not delete
+            elif os.path.isfile("./images/"+file_in_main): # item is a file
+                try:
+                    os.remove("./images/"+file_in_main)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
+    
+    if os.path.exists("./images/upscaledImages"):
+        for file_in_sub in os.listdir("./images/upscaledImages"):
+            if os.path.isdir("./images/upscaledImages/"+file_in_sub):
+                try:
+                    shutil.rmtree("./images/upscaledImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_sub, e.strerror))
+            else:
+                try:
+                    os.remove("./images/upscaledImages/"+file_in_sub)
+                except OSError as e:
+                    print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_sub, e.strerror))
 
 # -------------------------------------------------------------------------------
 

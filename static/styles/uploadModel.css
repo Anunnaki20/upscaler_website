@@ -1,9 +1,19 @@
 
 
 /* removes a upload text area */
-#upload_model{
+#upload{
     opacity: 0;
 }
+
+
+/* Position text in the upload area */
+#upload-label {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+}
+
 
 .card_background{
     height: 26rem;
