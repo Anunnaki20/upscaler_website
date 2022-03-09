@@ -1,3 +1,4 @@
+from ast import excepthandler
 import cgi
 import pathlib
 from turtle import up
@@ -270,6 +271,12 @@ def sendBackZip(request):
 
 # redirect the user back to the upload page while clearing folders
 def backhome(request):
+    try:
+        os.remove("./upscaledZip.zip")
+    except:
+        cleanDirectories()
+        return redirect('upload')
+    cleanDirectories()
     return redirect('upload')
 
 
