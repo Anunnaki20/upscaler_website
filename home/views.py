@@ -397,7 +397,7 @@ def upload(request):
                 return redirect('downloadZip')
             else:
 
-                messages.warning(request,"Image does not match the requirments")
+                messages.warning(request,"Image does not match the requirements")
                 return redirect('upload')
 
         else: # uploaded image is not the correct file type
