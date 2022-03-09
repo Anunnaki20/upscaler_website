@@ -310,6 +310,7 @@ def upload(request):
         #### Get the extension of the file ####
         
         extension = upload.name[1:len(upload.name)].split(".", 1)[1]
+        proper_extenstions = [".png", ".jpeg", ".bmp", ".tiff"]
         print(extension)
 
         # Check if the uploaded file is .zip
@@ -382,7 +383,7 @@ def upload(request):
             sendZip(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
             return redirect('downloadZip')
 
-        else: # the uploaded file was a single image
+        elif (extension in proper_extenstions): # the uploaded file was a single image
 
             # Check if the uploaded image is valid size/resolution
             if check_image_size(request, upload):
@@ -395,8 +396,13 @@ def upload(request):
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 return redirect('downloadZip')
             else:
+
                 messages.warning(request,"Image does not match the requirments")
                 return redirect('upload')
+
+        else: # uploaded image is not the correct file type
+            messages.warning("File type does not match the requirements")
+            return redirect('upload')
 
     return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
 
