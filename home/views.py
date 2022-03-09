@@ -251,15 +251,13 @@ def downloadZip(request):
                     
         return render(request,'download.html', context)
 
-        # else:
-        #     return render(request,'download.html')
-
 
 # Send back the upscaled zip folder to user
 def sendBackZip(request):
     file_server = pathlib.Path('./upscaledZip.zip')
     if not file_server.exists():
         messages.error(request, 'file not found.')
+        return redirect('upload')
     else:
         file_to_download = open(str(file_server), 'rb')
         os.remove("./upscaledZip.zip")
@@ -398,7 +396,8 @@ def upload(request):
                 sendImage(request, "."+file_url, scaleAmount, modelName, qualityMeasure) #"./images/"+upload.name
                 return redirect('downloadZip')
             else:
-                messages.warning("Image does not match the requirements")
+
+                messages.warning(request,"Image does not match the requirments")
                 return redirect('upload')
 
         else: # uploaded image is not the correct file type

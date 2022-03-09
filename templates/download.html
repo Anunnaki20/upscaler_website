@@ -30,10 +30,14 @@
     <div class="container d-flex justify-content-center">
         <div class="row mx-auto">
             <div class="column">
+                {% if original %}
                 <div id="image-compare">
                     <img src="{{original}}">
                     <img src="{{upscaled}}">
                 </div>
+                {% else %}
+                    <h3>Image comparison only available for a single image</h3>
+                {% endif %}  
             </div>
         </div>
 
