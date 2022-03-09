@@ -310,7 +310,7 @@ def upload(request):
         #### Get the extension of the file ####
         
         extension = upload.name[1:len(upload.name)].split(".", 1)[1]
-        proper_extenstions = [".png", ".jpeg", ".bmp", ".tiff"]
+        proper_extenstions = ["png", "jpeg", "bmp", "tiff"]
         print(extension)
 
         # Check if the uploaded file is .zip
