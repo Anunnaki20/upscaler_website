@@ -401,7 +401,7 @@ def upload(request):
                 return redirect('upload')
 
         else: # uploaded image is not the correct file type
-            messages.warning("File type does not match the requirements")
+            messages.warning(request,"File type does not match the requirements")
             return redirect('upload')
 
     return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
