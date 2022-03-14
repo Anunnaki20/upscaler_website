@@ -222,7 +222,7 @@ def downloadZip(request):
         print(results)
         context['results'] = results
 
-        if len(zippedFiles) <= 5:
+        if len(zippedFiles) <= 6:
             
             # Get the original image
             if os.path.exists("./images"):
@@ -269,12 +269,17 @@ def downloadZip(request):
                         except OSError as e:
                             print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
             
+
             context['original'] = original
             context['upscaled'] = upscaled
             context['bl'] = bl
             context['bc'] = bc
             context['nn'] = nn
-                    
+   
+        # This is done to dispose of the text file
+        os.remove("./images/upscaledImages/comparisonResult.txt")
+        shutil.make_archive("./upscaledZip", 'zip', "./images/upscaledImages/")
+
     return render(request,'download.html', context)
 
 
