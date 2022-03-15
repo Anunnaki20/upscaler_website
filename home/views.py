@@ -115,7 +115,7 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     baseName = Path(image).stem
     payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
     try:
-        req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload, timeout=10)
+        req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload, timeout=60)
     except:
         return
 
@@ -129,7 +129,7 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
 
     try:
-        req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload, timeout=10)
+        req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload, timeout=60)
     except:
         return
 
@@ -182,6 +182,9 @@ def downloadZip(request):
 
     original = ""
     upscaled = ""
+    bc = ""
+    bl = ""
+    nn = ""
     
     # extract the images from the zip
     with zipfile.ZipFile(zipPath, 'r') as zip_ref:
@@ -219,37 +222,65 @@ def downloadZip(request):
         print(results)
         context['results'] = results
 
-        if len(zippedFiles)==2:
+        if len(zippedFiles) <= 6:
             
-            # # Create directory if it doesn't exist
-            # if not os.path.isdir("./images/upscaledImages"):
-            #     os.mkdir("./images/upscaledImages")
-
-            # zip_ref.extractall("./images/upscaledImages")
-
             # Get the original image
             if os.path.exists("./images"):
                 for file_in_main in os.listdir("./images"):
-                    if os.path.isfile("./images/"+file_in_main) and pathlib.Path(file_in_main).suffix!=".txt": # item is an image file
+                    if os.path.isfile("./images/"+file_in_main): # item is an image file
                         try:
                             original = "/images/" + file_in_main
                         except OSError as e:
                             print("Error: %s : %s" % ("./images/"+file_in_main, e.strerror))
 
-            # Get the newly upscaled image
+            # Get the newly upscaled bc image
             if os.path.exists("./images/upscaledImages"):
                 for file_in_main in os.listdir("./images/upscaledImages"):
-                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and pathlib.Path(file_in_main).suffix!=".txt": # item is an image file
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "bc" in file_in_main: # item is an image file
+                        try:
+                            bc = "/images/upscaledImages/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+
+            # Get the newly upscaled bl image
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "bl" in file_in_main: # item is an image file
+                        try:
+                            bl = "/images/upscaledImages/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+
+            # Get the newly upscaled nn image
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "nn" in file_in_main: # item is an image file
+                        try:
+                            nn = "/images/upscaledImages/" + file_in_main
+                        except OSError as e:
+                            print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
+
+            # Get the newly upscaled nn image
+            if os.path.exists("./images/upscaledImages"):
+                for file_in_main in os.listdir("./images/upscaledImages"):
+                    if os.path.isfile("./images/upscaledImages/"+file_in_main) and "sisr" in file_in_main: # item is an image file
                         try:
                             upscaled = "/images/upscaledImages/" + file_in_main
-                            print(upscaled)
                         except OSError as e:
                             print("Error: %s : %s" % ("./images/upscaledImages/"+file_in_main, e.strerror))
             
+
             context['original'] = original
             context['upscaled'] = upscaled
-                    
-        return render(request,'download.html', context)
+            context['bl'] = bl
+            context['bc'] = bc
+            context['nn'] = nn
+   
+        # This is done to dispose of the text file
+        os.remove("./images/upscaledImages/comparisonResult.txt")
+        shutil.make_archive("./upscaledZip", 'zip', "./images/upscaledImages/")
+
+    return render(request,'download.html', context)
 
 
 # Send back the upscaled zip folder to user
@@ -310,7 +341,7 @@ def upload(request):
         #### Get the extension of the file ####
         
         extension = upload.name[1:len(upload.name)].split(".", 1)[1]
-        proper_extenstions = [".png", ".jpeg", ".bmp", ".tiff"]
+        proper_extenstions = ["png", "jpeg", "bmp", "tiff"]
         print(extension)
 
         # Check if the uploaded file is .zip
