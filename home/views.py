@@ -423,18 +423,29 @@ def uploadModel(request):
         # Send POST data to the UpscaleInformation
         form = ModelInformation(request.POST, request.FILES)
         # print("Model Name:", upload.name)
-        if form.is_valid():
-            modelDesc = request.POST.get('modelDesc')
-            # upload = request.FILES['upload_model']#.get('model')
-            modelfilename = upload.name
-            ### Update and add the information to the database ###
-            m = ModelInfo(modelDesc=modelDesc, modelfilename=modelfilename)
-            m.save()
 
-        ##### Send the image to the backend server #####
-        sendModel(request, upload, modelDesc)
+        filename = upload.name
+        extension = filename[1:len(filename)].split(".", 1)[1]
+        accepted_type = ["h5"]
 
-        return render(request, 'model_upload.html')
+        if extension in accepted_type:
+            if form.is_valid():
+                modelDesc = request.POST.get('modelDesc')
+                # upload = request.FILES['upload_model']#.get('model')
+                modelfilename = upload.name
+                ### Update and add the information to the database ###
+                m = ModelInfo(modelDesc=modelDesc, modelfilename=modelfilename)
+                m.save()
+
+            ##### Send the image to the backend server #####
+            sendModel(request, upload, modelDesc)
+
+            return render(request, 'model_upload.html')
+
+        else: # uploaded image is not the correct file type
+            messages.warning(request,"File type does not match the requirements")
+            return redirect('uploadModel')
+  
     else:
         form = ModelInformation()
     return render(request, 'model_upload.html', {'form': form})
