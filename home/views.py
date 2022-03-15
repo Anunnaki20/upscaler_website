@@ -115,7 +115,7 @@ def sendImage(request, image, scaleAmount, modelName, qualityMeasure):
     baseName = Path(image).stem
     payload = {'type': 'singleImage', 'model': modelName, 'filename': baseName,  'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
     try:
-        req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload, timeout=10)
+        req = requests.post('http://host.docker.internal:5000/', data=image_message, params=payload, timeout=60)
     except:
         return
 
@@ -129,7 +129,7 @@ def sendZip(request, zipfile, scaleAmount, modelName, qualityMeasure):
     payload = {'type': 'zip', 'model': modelName, 'scaleAmount': scaleAmount, 'qualityMeasure': qualityMeasure}
 
     try:
-        req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload, timeout=10)
+        req = requests.post('http://host.docker.internal:5000/', data=fsock, params=payload, timeout=60)
     except:
         return
 
