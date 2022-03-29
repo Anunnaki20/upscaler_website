@@ -222,7 +222,7 @@ def downloadZip(request):
         print(results)
         context['results'] = results
 
-        if len(zippedFiles) <= 6:
+        if len(zippedFiles) <= 6 and request.session["extension"] != "zip":
             
             # Get the original image
             if os.path.exists("./images"):
@@ -341,6 +341,8 @@ def upload(request):
         #### Get the extension of the file ####
         
         extension = upload.name[1:len(upload.name)].split(".", 1)[1]
+        request.session["extension"] = extension
+
         proper_extenstions = ["png", "jpeg", "bmp", "tiff"]
         print(extension)
 
@@ -436,7 +438,6 @@ def upload(request):
             return redirect('upload')
 
     return render(request, 'upload.html', {'model_list': model_list, 'model_list_js':model_list_js})
-
 
 # Sending model to the SISR website
 def sendModel(request, modelfile, modelDesc):
